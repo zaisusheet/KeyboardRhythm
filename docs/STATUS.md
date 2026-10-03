@@ -11,13 +11,15 @@
 | 仕様 | v0.1（2026年10月3日更新） |
 | Unity Editor | 6000.6.4f1（リビジョン`12bfff696524`） |
 | Input System | 1.20.0 |
+| OS | Windows（現在の作業環境） |
+| キーボード | 配列・実機入力は未確認 |
 | 入力設定 | `ProjectSettings/ProjectSettings.asset`の`activeInputHandler: 1`。新Input Systemのみ有効 |
 | Universal RP | 17.6.0 |
 | Test Framework | 1.8.0 |
 | uGUI | 2.6.0 |
 | 対象Scene | `Assets/Scenes/SampleScene.unity`、`Assets/Scenes/GamePlayTest.unity` |
-| 基準コミット | `7b6e892218a1a290074921780201430f9fc81d0a`（`Initialize Unity project and game specification`） |
-| 未コミット変更 | あり。作業開始時は`docs/`が未追跡。今回作成した`AGENTS.md`と本書も未コミット |
+| 基準コミット | `75e87d7ecf2eb07fb724b0bc50760be89f3ff1b5`（`make document`） |
+| 未コミット変更 | あり。今回の作業開始時は変更なし。今回の`AGENTS.md`と本書の更新は未コミット |
 | 確認方法 | 設定、仕様書、C#、Scene YAML、`.meta`、入力アセット、Git状態の静的確認。Unityでの実行・ビルドは未実施 |
 
 バージョンは`ProjectSettings/ProjectVersion.txt`、`Packages/manifest.json`を参照する。上記主要パッケージのバージョンは`Packages/packages-lock.json`とも一致している。
@@ -33,7 +35,7 @@
 | `Assets/NewEmptyCSharpScript.cs` | 空の通常クラス。`MonoBehaviour`の継承なし |
 | `Assets/InputSystem_Actions.inputactions` | 汎用の`Player`・`UI`マップあり。音楽ゲーム用の31キー設定はなし |
 | テンプレートの説明表示 | `Assets/TutorialInfo/Readme.cs`と`Assets/TutorialInfo/Editor/ReadmeEditor.cs`あり |
-| 開発用文書 | `docs/SPEC.md`あり。今回`AGENTS.md`と本書を作成 |
+| 開発用文書 | `docs/SPEC.md`、`AGENTS.md`、本書あり。今回`AGENTS.md`の基本方針と進捗の記入例を更新 |
 
 `CSharpCheck.cs`のGUIDは`5423e63593427854396023f044419620`。保存済みの両Sceneには、このスクリプトを参照するコンポーネントがない。コードの存在は確認できるが、Sceneへの接続は未実施。
 
@@ -72,3 +74,14 @@
 4. 音楽と可変幅TOUCHへ進む段階で、U02の判定幅・境界値と音楽時刻・入力時刻の対応を整理する。
 
 未決定事項U01～U10の内容は`SPEC.md`第9節を参照する。本書の作業順や実装案によって未決定事項を確定扱いにしない。
+
+## 今回の作業記録
+
+対象：`AGENTS.md`の方針・進捗記入例の更新（2026年10月4日）
+
+- 変更点：ユーザー指定の6項目を基本方針として明記。関連する判定テストの実行、Unity未実行の記録、終了時の変更点・確認結果・残課題の反映を具体化した。
+- 変更点：TOUCH判定の記入例を`AGENTS.md`に掲載し、実際の進捗とは別であることを明記した。例にある実装・確認結果・不具合を本書の実際の進捗には転記していない。
+- 確認結果：文書の内容、相対リンク、Git差分と空白エラーを確認した。
+- 判定テスト：文書のみの変更で関連する判定テストがないため、実行対象なし。
+- Unity：Unityでの実行未実施。文書のみの変更のため、コンパイル・Play Mode・ビルドも実施していない。
+- 残課題：31キーの入力テストは未実装。次の作業は上記の提案を参照する。
