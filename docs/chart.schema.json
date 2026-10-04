@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:keyboardrhythm:chart:1",
+  "title": "KeyboardRhythm chart v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "chartId",
+    "title",
+    "audio",
+    "timing",
+    "notes",
+    "events"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "chartId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "chartZeroAtAudioSeconds"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "chartZeroAtAudioSeconds": {
+          "type": "number"
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initialBpm"
+      ],
+      "properties": {
+        "initialBpm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "beat",
+          "lane",
+          "width",
+          "durationBeats"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "TOUCH",
+              "FLOOR",
+              "DOUBLE",
+              "LONG",
+              "FLOOR_LONG"
+            ],
+            "description": "All five note types are supported by the current silent prototype. Judgement and hold policy values remain provisional."
+          },
+          "beat": {
+            "type": "number",
+            "minimum": 0
+          },
+          "lane": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "One-based input-area start for normal notes. FLOOR/FLOOR_LONG use 0 for Space-only input, independently of visual placement."
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "TOUCH is normally authored with width >= 2; width 1 remains valid for exceptions. FLOOR/FLOOR_LONG use 0; their visual span is fixed from lane 3 center to lane 8 center."
+          },
+          "durationBeats": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "FLOOR",
+                    "FLOOR_LONG"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "lane": {
+                  "const": 0
+                },
+                "width": {
+                  "const": 0
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "lane": {
+                  "minimum": 1
+                },
+                "width": {
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "LONG",
+                    "FLOOR_LONG"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "durationBeats": {
+                  "exclusiveMinimum": 0
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "durationBeats": {
+                  "const": 0
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "beat",
+          "tag",
+          "parameters"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "beat": {
+            "type": "number",
+            "minimum": 0
+          },
+          "tag": {
+            "type": "string",
+            "minLength": 1
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "type",
+                "value"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "enum": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "json"
+                  ]
+                },
+                "value": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

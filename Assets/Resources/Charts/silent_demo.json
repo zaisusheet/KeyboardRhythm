@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "chartId": "silent-demo-001",
+  "title": "Silent Demo 01",
+  "audio": {
+    "path": "",
+    "chartZeroAtAudioSeconds": 0
+  },
+  "timing": {
+    "initialBpm": 120
+  },
+  "notes": [
+    {
+      "id": "n01",
+      "type": "TOUCH",
+      "beat": 0,
+      "lane": 1,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n02",
+      "type": "TOUCH",
+      "beat": 1,
+      "lane": 2,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n03",
+      "type": "TOUCH",
+      "beat": 2,
+      "lane": 3,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n04",
+      "type": "TOUCH",
+      "beat": 3,
+      "lane": 4,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n05",
+      "type": "TOUCH",
+      "beat": 4,
+      "lane": 5,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n06",
+      "type": "TOUCH",
+      "beat": 5,
+      "lane": 6,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n07",
+      "type": "TOUCH",
+      "beat": 6,
+      "lane": 7,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n08",
+      "type": "TOUCH",
+      "beat": 7,
+      "lane": 8,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n09",
+      "type": "TOUCH",
+      "beat": 8,
+      "lane": 9,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n10",
+      "type": "TOUCH",
+      "beat": 9,
+      "lane": 9,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n11",
+      "type": "FLOOR",
+      "beat": 10,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    },
+    {
+      "id": "n12",
+      "type": "TOUCH",
+      "beat": 11,
+      "lane": 1,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "n13",
+      "type": "TOUCH",
+      "beat": 12,
+      "lane": 4,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "n14",
+      "type": "TOUCH",
+      "beat": 13,
+      "lane": 8,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "n15",
+      "type": "FLOOR",
+      "beat": 14,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    },
+    {
+      "id": "n16",
+      "type": "TOUCH",
+      "beat": 15,
+      "lane": 1,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n17",
+      "type": "TOUCH",
+      "beat": 15,
+      "lane": 9,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n18",
+      "type": "TOUCH",
+      "beat": 16,
+      "lane": 1,
+      "width": 10,
+      "durationBeats": 0
+    },
+    {
+      "id": "n19",
+      "type": "FLOOR",
+      "beat": 17,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    },
+    {
+      "id": "n20",
+      "type": "TOUCH",
+      "beat": 18,
+      "lane": 4,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "n21",
+      "type": "TOUCH",
+      "beat": 19,
+      "lane": 9,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n22",
+      "type": "FLOOR",
+      "beat": 20,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    },
+    {
+      "id": "n23",
+      "type": "TOUCH",
+      "beat": 21,
+      "lane": 5,
+      "width": 2,
+      "durationBeats": 0
+    },
+    {
+      "id": "n24",
+      "type": "FLOOR",
+      "beat": 22,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    }
+  ],
+  "events": [
+    {
+      "id": "e01",
+      "beat": 4,
+      "tag": "scroll.speed",
+      "parameters": [
+        {
+          "name": "multiplier",
+          "type": "number",
+          "value": "1.5"
+        }
+      ]
+    },
+    {
+      "id": "e02",
+      "beat": 8,
+      "tag": "scroll.speed",
+      "parameters": [
+        {
+          "name": "multiplier",
+          "type": "number",
+          "value": "0.75"
+        }
+      ]
+    },
+    {
+      "id": "e03",
+      "beat": 12,
+      "tag": "playback.stop",
+      "parameters": [
+        {
+          "name": "durationSeconds",
+          "type": "number",
+          "value": "1.0"
+        }
+      ]
+    },
+    {
+      "id": "e04",
+      "beat": 16,
+      "tag": "custom.example",
+      "parameters": [
+        {
+          "name": "payload",
+          "type": "json",
+          "value": "{\"message\":\"future editor tag\",\"color\":\"cyan\"}"
+        }
+      ]
+    }
+  ]
+}

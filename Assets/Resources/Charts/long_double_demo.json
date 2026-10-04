@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "chartId": "long-double-demo-001",
+  "title": "LONG + DOUBLE Check",
+  "audio": {
+    "path": "",
+    "chartZeroAtAudioSeconds": 0
+  },
+  "timing": {
+    "initialBpm": 120
+  },
+  "notes": [
+    {
+      "id": "ld01",
+      "type": "DOUBLE",
+      "beat": 0,
+      "lane": 1,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld02",
+      "type": "DOUBLE",
+      "beat": 4,
+      "lane": 4,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld03",
+      "type": "DOUBLE",
+      "beat": 8,
+      "lane": 8,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld04",
+      "type": "LONG",
+      "beat": 12,
+      "lane": 3,
+      "width": 3,
+      "durationBeats": 4
+    },
+    {
+      "id": "ld05",
+      "type": "LONG",
+      "beat": 18,
+      "lane": 5,
+      "width": 3,
+      "durationBeats": 4
+    },
+    {
+      "id": "ld06",
+      "type": "LONG",
+      "beat": 24,
+      "lane": 3,
+      "width": 3,
+      "durationBeats": 6
+    },
+    {
+      "id": "ld07",
+      "type": "LONG",
+      "beat": 32,
+      "lane": 3,
+      "width": 3,
+      "durationBeats": 8
+    },
+    {
+      "id": "ld08",
+      "type": "TOUCH",
+      "beat": 36,
+      "lane": 5,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld09",
+      "type": "LONG",
+      "beat": 44,
+      "lane": 3,
+      "width": 3,
+      "durationBeats": 8
+    },
+    {
+      "id": "ld10",
+      "type": "DOUBLE",
+      "beat": 48,
+      "lane": 5,
+      "width": 3,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld11",
+      "type": "LONG",
+      "beat": 56,
+      "lane": 3,
+      "width": 3,
+      "durationBeats": 6
+    },
+    {
+      "id": "ld12",
+      "type": "LONG",
+      "beat": 58,
+      "lane": 5,
+      "width": 3,
+      "durationBeats": 4
+    },
+    {
+      "id": "ld13",
+      "type": "FLOOR_LONG",
+      "beat": 64,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 4
+    },
+    {
+      "id": "ld14",
+      "type": "DOUBLE",
+      "beat": 70,
+      "lane": 1,
+      "width": 10,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld15",
+      "type": "TOUCH",
+      "beat": 72,
+      "lane": 1,
+      "width": 10,
+      "durationBeats": 0
+    },
+    {
+      "id": "ld16",
+      "type": "FLOOR",
+      "beat": 74,
+      "lane": 0,
+      "width": 0,
+      "durationBeats": 0
+    }
+  ],
+  "events": [
+    {
+      "id": "e01",
+      "beat": 4,
+      "tag": "scroll.speed",
+      "parameters": [
+        {
+          "name": "multiplier",
+          "type": "number",
+          "value": "1.5"
+        }
+      ]
+    },
+    {
+      "id": "e02",
+      "beat": 8,
+      "tag": "scroll.speed",
+      "parameters": [
+        {
+          "name": "multiplier",
+          "type": "number",
+          "value": "0.75"
+        }
+      ]
+    },
+    {
+      "id": "e03",
+      "beat": 12,
+      "tag": "playback.stop",
+      "parameters": [
+        {
+          "name": "durationSeconds",
+          "type": "number",
+          "value": "1.0"
+        }
+      ]
+    },
+    {
+      "id": "e04",
+      "beat": 16,
+      "tag": "custom.example",
+      "parameters": [
+        {
+          "name": "payload",
+          "type": "json",
+          "value": "{\"message\":\"future editor tag\",\"color\":\"cyan\"}"
+        }
+      ]
+    }
+  ]
+}

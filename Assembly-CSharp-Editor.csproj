@@ -53,7 +53,10 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\BCLExtensions\TargetingPacks\netstandard2.1\analyzers\dotnet\roslyn4.0\cs\System.Text.Json.SourceGeneration.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\Editor\SilentChartChecks.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\Editor\GameplayCoreChecks.cs" />
     <Compile Include="Assets\TutorialInfo\Editor\ReadmeEditor.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\Editor\SilentChartSceneSetup.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -1,0 +1,15 @@
+C:\dev\KeyboardRhythm\verification\bin\Debug\net10.0\CoreChecks.exe
+C:\dev\KeyboardRhythm\verification\bin\Debug\net10.0\CoreChecks.deps.json
+C:\dev\KeyboardRhythm\verification\bin\Debug\net10.0\CoreChecks.runtimeconfig.json
+C:\dev\KeyboardRhythm\verification\bin\Debug\net10.0\CoreChecks.dll
+C:\dev\KeyboardRhythm\verification\bin\Debug\net10.0\CoreChecks.pdb
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.AssemblyInfoInputs.cache
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.AssemblyInfo.cs
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.csproj.CoreCompileInputs.cache
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.sourcelink.json
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.dll
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\refint\CoreChecks.dll
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.pdb
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\CoreChecks.genruntimeconfig.cache
+C:\dev\KeyboardRhythm\verification\obj\Debug\net10.0\ref\CoreChecks.dll

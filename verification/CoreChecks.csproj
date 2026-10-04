@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../Assets/KeyboardRhythm/SilentPrototype/ChartData.cs" Link="ChartData.cs" />
+    <Compile Include="../Assets/KeyboardRhythm/SilentPrototype/RhythmSession.cs" Link="RhythmSession.cs" />
+    <Compile Include="../Assets/KeyboardRhythm/SilentPrototype/NoteLayout.cs" Link="NoteLayout.cs" />
+    <Compile Include="../Assets/KeyboardRhythm/SilentPrototype/Editor/GameplayCoreChecks.cs" Link="GameplayCoreChecks.cs" />
+  </ItemGroup>
+</Project>
