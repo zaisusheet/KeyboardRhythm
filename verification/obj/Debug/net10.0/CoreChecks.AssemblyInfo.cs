@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CoreChecks")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4ba6512806a9b46016445868e363a0124faa9398")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a55fd92daf6278ac6ca8a61b056fe90960a096d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CoreChecks")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CoreChecks")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

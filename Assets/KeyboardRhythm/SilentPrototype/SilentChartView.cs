@@ -130,7 +130,7 @@ namespace KeyboardRhythm.SilentPrototype
                 {
                     Vector2 pos = widgets.Root.anchoredPosition;
                     float headY = HitY + (float)(remaining / travelSeconds) * (SpawnY - HitY);
-                    if (note.State == NoteState.Holding) headY = HitY;
+                    if (note.State == NoteState.Holding || note.State == NoteState.MissedStart) headY = HitY;
                     pos.y = headY - BoardBottom;
                     widgets.Root.anchoredPosition = pos;
                     if (note.IsHold)
@@ -139,9 +139,13 @@ namespace KeyboardRhythm.SilentPrototype
                         float height = Math.Max(22, tailY - headY + 22);
                         widgets.Root.sizeDelta = new Vector2(widgets.Root.sizeDelta.x, height);
                         widgets.Tail.anchoredPosition = new Vector2(0, height - 6);
-                        widgets.HeadImage.color = note.State != NoteState.Holding ?
+                        widgets.HeadImage.color = note.State == NoteState.MissedStart ? new Color(1f, 0.35f, 0.3f) :
+                            note.State != NoteState.Holding ?
                             (note.IsFloor ? new Color(0.88f, 0.55f, 1f) : new Color(0.3f, 0.95f, 0.5f)) :
                             note.IsHeld ? new Color(0.3f, 1f, 0.6f) : new Color(1f, 0.35f, 0.3f);
+                        widgets.Label.text = note.State == NoteState.MissedStart ?
+                            (note.IsFloor ? "SPACE: PRESS TO JOIN" : "LONG: PRESS TO JOIN") :
+                            (note.IsFloor ? "SPACE HOLD" : "LONG");
                     }
                     if (note.Data.type == "DOUBLE") widgets.Label.text = "DOUBLE " + note.DoubleCandidateCount + "/2";
                 }

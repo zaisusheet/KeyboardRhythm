@@ -14,15 +14,15 @@
 | Shiftの入力確認 | 確認済み（報告の範囲） | 2026年10月4日のユーザー報告「Shiftでの入力も確認」。詳細な操作条件は未記録 |
 | キーと10レーンの対応 | 動作確認済み | 2026年10月4日のユーザー報告「レーン別の動作を確認しました」。個別の入力条件・ログは未記録 |
 | 無音の短い譜面試作 | コード・JSON・導入手順を提供済み、実プロジェクト導入とUnity動作は未確認 | 本チャットで24ノートの試作を作成。基本24ノートと今回のLONG/DOUBLE確認16ノート、5種のノート判定と表示、コード生成UI、判定チェックを同梱 |
-| LONG・DOUBLE・長押しFLOOR | コード提供済み。保持中の定期判定をPERFECTへ更新。コンパイル・判定チェック・Unity実行は未確認 | 新しい押下・物理2キー・保持・空白・復帰・共有・拍に沿う加算と、GREAT/GOOD始点からのPERFECT保持判定を確認する |
-| 次の確認対象 | 保持判定PERFECT更新版の反映・判定チェック・Play | 既存Sceneと譜面を使い、LONG・SPACE HOLDをGREAT/GOODで開始して後続PERFECTを確認する |
-| 音楽・イベント処理・GUI譜面エディター | 未実装 | 将来要件と仮判定方式・保持判定の確定ルールをSPEC v0.5とCHART_FORMAT・LONG_DOUBLE_CHECKSに記録。ノート判定は提供試作に含むが実プロジェクトで未確認 |
+| LONG・DOUBLE・長押しFLOOR | コード提供済み。物理キー単位の開始条件を明確化し、始点MISS後の途中参加と保持中PERFECTへ更新。コンパイル・判定チェック・Unity実行は未確認 | 新しい押下・物理2キー・保持・空白・復帰・共有・拍に沿う加算と、GREAT/GOOD始点からのPERFECT保持判定を確認する |
+| 次の確認対象 | LONG途中参加対応版の反映・判定チェック・Play | 既存Sceneと譜面でF保持＋R押下、始点MISS後の途中参加、途中MISS復帰、参加後PERFECTを確認する |
+| 音楽・イベント処理・GUI譜面エディター | 未実装 | 将来要件と仮判定方式・保持判定の確定ルールをSPEC v0.6とCHART_FORMAT・LONG_DOUBLE_CHECKSに記録。ノート判定は提供試作に含むが実プロジェクトで未確認 |
 
 ## 記録の対象
 
 | 項目 | 内容 |
 | --- | --- |
-| 仕様 | v0.5（2026年10月4日更新）。LONG・長押しFLOORの保持中定期判定PERFECTを確定。LONG・DOUBLE確認版の他の仮設定を維持。TOUCH原則幅2以上、FLOOR共通レーンの中心3～8間を維持 |
+| 仕様 | v0.6（2026年10月4日更新）。LONG・長押しFLOORの新しい物理キー押下による開始、始点MISS後の途中参加、途中MISS復帰、保持中PERFECTを確定。LONG・DOUBLE確認版の他の仮設定を維持。TOUCH原則幅2以上、FLOOR共通レーンの中心3～8間を維持 |
 | Unity Editor | 6000.6.4f1（リビジョン`12bfff696524`） |
 | Input System | 1.20.0 |
 | OS | Windows（現在の作業環境） |
@@ -66,9 +66,9 @@ U01の試作用割り当て：＋は`Key.Semicolon`、?は`Key.Slash`とし、Sh
 | `Assets/Resources/Charts/long_double_demo.json` | 120BPM、16ノート、最後の予定時刻37秒、カウント・結果待ち込み約41秒。DOUBLE→LONG→共有→SPACE HOLDを確認 |
 | `Assets/KeyboardRhythm/SilentPrototype/ChartData.cs` | 音楽情報・拍・ノート・イベントのデータと検証。未対応ノートを明示的に拒否 |
 | `NoteLayout.cs` | FLOORの表示端をレーン3・8の中心に設定。レーン単位の左端2.5・右端7.5。入力エリアと表示範囲を分離 |
-| `RhythmSession.cs` | Unity非依存の5種ノート判定。物理キーIDでDOUBLE、LONGの開始・保持・空白・復帰、拍に沿う加算、全ノートの時間順を処理。始点の評価を維持し、保持中の定期判定はPERFECT。空白・MISSの記録は残す。他の値と方式は仮設定 |
+| `RhythmSession.cs` | Unity非依存の5種ノート判定。物理キーIDでDOUBLE、LONGの開始・保持・空白・復帰、拍に沿う加算、全ノートの時間順を処理。始点MISS後の参加待ちを終端まで残し、新しい押下で途中参加。始点の評価を維持し、保持中の定期判定はPERFECT。空白・MISSの記録は残す。他の値と方式は仮設定 |
 | `KeyboardLaneInput.cs` | 31物理キーの新しい押下・保持状態とレーン保持表示。従来の仮記号割当を継承 |
-| `SilentChartPlayer.cs` / `SilentChartView.cs` | 無音時計、開始・再スタート、フォーカス外れ時の停止、共通10レーン・共通判定ライン上のコード生成UI。FLOORは紫色SPACE表示、通常キーとSpaceの入力表示を分離。時計を将来音楽時計へ差し替えられる形 |
+| `SilentChartPlayer.cs` / `SilentChartView.cs` | 無音時計、開始・再スタート、フォーカス外れ時の停止、共通10レーン・共通判定ライン上のコード生成UI。FLOORは紫色SPACE表示、通常キーとSpaceの入力表示を分離。時計を将来音楽時計へ差し替えられる形。始点MISS後も赤い頭と帯・PRESS TO JOIN表示を残す |
 | `Editor/SilentChartSceneSetup.cs` | 基本SceneとLONG/DOUBLE専用Sceneの作成／再読込。Hierarchyや参照の手動設定を省く |
 | `Editor/GameplayCoreChecks.cs` / `Editor/SilentChartChecks.cs` | 実際の判定コードで時間境界・2物理キー・保持・空白・復帰・共有・時間順・初期化等を検査。UnityではJSON・イベント保持も検査。ここでは未実行 |
 | `docs/CHART_FORMAT.md` / `docs/chart.schema.json` | 外部GUIでも扱える試用形式v1。音楽の相対参照と開始位置、任意イベントタグ・パラメーターを説明 |
@@ -121,9 +121,9 @@ U01の試作用割り当て：＋は`Key.Semicolon`、?は`Key.Slash`とし、Sh
 
 ## 次の作業
 
-前回LONG/DOUBLE版を導入済みならRhythmSession.cs・Editor/GameplayCoreChecks.csとREADME・関連docsを更新し、既存.metaとSceneを保持する。未導入なら同梱版全体を差分反映する。利用可能なら.NET SDK 10で `dotnet run --project verification/CoreChecks.csproj` を実行する。Unityではコンパイル後、`Tools > KeyboardRhythm > Open LONG DOUBLE Test` を選び、同梱チェックの成功を確認する。専用 `Assets/Scenes/LongDoubleTest.unity` は自動生成／再読込する。Play→Gameビュー→Enterで開始し、F1/F2で基本／新規譜面、F5で初期化する。
+前回LONG/DOUBLE版を導入済みならRhythmSession.cs・SilentChartView.cs・Editor/GameplayCoreChecks.csとREADME・関連docsを更新し、既存.metaとSceneを保持する。未導入なら同梱版全体を差分反映する。利用可能なら.NET SDK 10で `dotnet run --project verification/CoreChecks.csproj` を実行する。Unityではコンパイル後、`Tools > KeyboardRhythm > Open LONG DOUBLE Test` を選び、同梱チェックの成功を確認する。専用 `Assets/Scenes/LongDoubleTest.unity` は自動生成／再読込する。Play→Gameビュー→Enterで開始し、F1/F2で基本／新規譜面、F5で初期化する。
 
-[LONG_DOUBLE_CHECKS.md](LONG_DOUBLE_CHECKS.md) の譜面時刻表に沿って、異なる物理2キー、LONGの新しい開始押下・持ち替え・空白・MISS・復帰、LONGとTOUCH/DOUBLEの共有、2本のLONG、Space長押しを確認する。LONG・SPACE HOLDの始点がGREAT/GOODでも後続のHOLD TICKはPERFECTになること、再保持後もPERFECTで過去のMISSが残ることを確認する。結果はユーザー報告の範囲で本書へ追記し、Scene・meta・対象コミットも記録する。
+[LONG_DOUBLE_CHECKS.md](LONG_DOUBLE_CHECKS.md) の譜面時刻表に沿って、異なる物理2キー、LONGの新しい開始押下・持ち替え・空白・MISS・復帰、LONGとTOUCH/DOUBLEの共有、2本のLONG、Space長押しを確認する。LONG・SPACE HOLDの始点がGREAT/GOODでも後続のHOLD TICKはPERFECTになること、再保持後もPERFECTで過去のMISSが残ることを確認する。F保持中のRによる開始、始点MISS後の途中参加、過ぎた区間の加算なし、終端以降の参加なし、途中MISS復帰も確認する。結果はユーザー報告の範囲で本書へ追記し、Scene・meta・対象コミットも記録する。
 
 ## 開発順
 
@@ -140,6 +140,21 @@ U01の試作用割り当て：＋は`Key.Semicolon`、?は`Key.Slash`とし、Sh
 
 ## 今回の作業記録
 
+対象：LONGの物理キー単位の開始条件・始点MISS後の途中参加・途中MISS復帰（2026年10月4日）
+
+- 根拠：ユーザーの3条件。保持だけでは新しいLONGを開始せず、F保持中のRなど同レーンの別物理キーの押下は受け付ける。始点MISS後の途中参加を許可し、開始済みLONGの途中MISS復帰も許可する。
+- 判定：始点MISS後はMissedStart状態で終端まで参加待ち。新しい対象キー押下でHoldingへ移り、参加時刻以降の予定加算をPERFECTで付ける。参加時刻と予定加算が一致すればその加算を含む。追加のSTART加算・過去区間の加算は付けず、始点MISSを維持する。
+- 境界：全区間未参加でも始点MISSは1回。終端で完了し、終端以降は参加できない。GOOD窓より短いLONGは終端で始点MISS・完了する。途中参加後の空白・MISS・復帰も従来処理を使う。
+- 表示：SilentChartViewは始点MISS後も赤い頭を判定ラインに残し、帯を縮めてPRESS TO JOINを表示。途中参加したら通常の保持表示へ戻す。
+- チェック：F保持＋R押下、同レーンの新しいLONG、両長押し型の始点MISS後参加、保持だけ・範囲外入力の拒否、参加時刻と予定加算の一致、参加後の再MISSと復帰、終端・短いLONG、TOUCHとの入力共有を追加。以前のGREAT/GOOD始点後PERFECTのチェックも維持する。
+- 文書：SPEC v0.6へ開始・途中参加・復帰を確定条件として記録。U04の該当条件を未決定から外し、新しい1押下の複数LONG同時開始共有等は引き続き仮扱い。README・CHART_FORMAT・LONG_DOUBLE_CHECKSを整合させた。
+- 確認結果：コード・状態遷移・C#字句・文書リンク・ZIPを静的確認。譜面JSON・Schema・Scene・metaと変更対象外のコードは前回版のまま。
+- 判定テスト：提供環境にdotnetがなく、実際のC#判定チェックは実行できない。C#コンパイル・Unity自動チェック・Play・ビルドは未確認。テスト成功とは記録しない。
+- リポジトリ：実プロジェクトへの反映・Git状態は未取得。今回の修正希望をUnity実行確認完了として扱わない。
+- 残課題：導入先の自動チェックとUnityで上記3条件・FLOOR_LONGの同等動作を確認する。
+
+## 前回の作業記録：保持判定PERFECT
+
 対象：LONG・長押しFLOORの保持中判定をPERFECTへ分離（2026年10月4日）
 
 - 根拠：ユーザー指定「始点のタイミングがGOODやGREATであっても、押し続けている際の判定はPERFECT」。
@@ -152,7 +167,7 @@ U01の試作用割り当て：＋は`Key.Semicolon`、?は`Key.Slash`とし、Sh
 - リポジトリ：実プロジェクトへの反映・Git状態は未取得。ユーザーの今回の変更希望をUnity動作確認完了とは扱わない。
 - 残課題：更新した自動チェックとUnityのGREAT/GOOD始点→HOLD TICK PERFECT、空白・復帰・集計の確認。
 
-## 前回の作業記録
+## 前回の作業記録：LONG・DOUBLE確認版
 
 対象：LONG・DOUBLE確認版の追加（2026年10月4日）
 

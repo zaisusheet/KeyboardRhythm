@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "chartId": "silent-demo-001",
-  "title": "Silent Demo 01",
+  "title": "Silent Demo 01 ",
   "audio": {
     "path": "",
     "chartZeroAtAudioSeconds": 0
@@ -11,195 +11,139 @@
   },
   "notes": [
     {
-      "id": "n01",
-      "type": "TOUCH",
+      "id": "n001",
+      "type": "DOUBLE",
       "beat": 0,
       "lane": 1,
-      "width": 2,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n02",
-      "type": "TOUCH",
+      "id": "n002",
+      "type": "DOUBLE",
       "beat": 1,
-      "lane": 2,
-      "width": 2,
+      "lane": 1,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n03",
+      "id": "n003",
       "type": "TOUCH",
-      "beat": 2,
-      "lane": 3,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n04",
-      "type": "TOUCH",
-      "beat": 3,
+      "beat": 0.5,
       "lane": 4,
-      "width": 2,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n05",
+      "id": "n004",
       "type": "TOUCH",
+      "beat": 1.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n005",
+      "type": "TOUCH",
+      "beat": 2.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n006",
+      "type": "TOUCH",
+      "beat": 3.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n007",
+      "type": "TOUCH",
+      "beat": 4.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n008",
+      "type": "TOUCH",
+      "beat": 5.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n009",
+      "type": "TOUCH",
+      "beat": 6.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n010",
+      "type": "TOUCH",
+      "beat": 7.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n011",
+      "type": "DOUBLE",
+      "beat": 2,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n012",
+      "type": "DOUBLE",
+      "beat": 3,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n013",
+      "type": "DOUBLE",
       "beat": 4,
-      "lane": 5,
-      "width": 2,
+      "lane": 1,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n06",
-      "type": "TOUCH",
+      "id": "n014",
+      "type": "DOUBLE",
       "beat": 5,
-      "lane": 6,
-      "width": 2,
+      "lane": 1,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n07",
-      "type": "TOUCH",
+      "id": "n015",
+      "type": "DOUBLE",
+      "beat": 8,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n016",
+      "type": "DOUBLE",
       "beat": 6,
       "lane": 7,
-      "width": 2,
+      "width": 4,
       "durationBeats": 0
     },
     {
-      "id": "n08",
-      "type": "TOUCH",
+      "id": "n017",
+      "type": "DOUBLE",
       "beat": 7,
-      "lane": 8,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n09",
-      "type": "TOUCH",
-      "beat": 8,
-      "lane": 9,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n10",
-      "type": "TOUCH",
-      "beat": 9,
-      "lane": 9,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n11",
-      "type": "FLOOR",
-      "beat": 10,
-      "lane": 0,
-      "width": 0,
-      "durationBeats": 0
-    },
-    {
-      "id": "n12",
-      "type": "TOUCH",
-      "beat": 11,
-      "lane": 1,
-      "width": 3,
-      "durationBeats": 0
-    },
-    {
-      "id": "n13",
-      "type": "TOUCH",
-      "beat": 12,
-      "lane": 4,
-      "width": 3,
-      "durationBeats": 0
-    },
-    {
-      "id": "n14",
-      "type": "TOUCH",
-      "beat": 13,
-      "lane": 8,
-      "width": 3,
-      "durationBeats": 0
-    },
-    {
-      "id": "n15",
-      "type": "FLOOR",
-      "beat": 14,
-      "lane": 0,
-      "width": 0,
-      "durationBeats": 0
-    },
-    {
-      "id": "n16",
-      "type": "TOUCH",
-      "beat": 15,
-      "lane": 1,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n17",
-      "type": "TOUCH",
-      "beat": 15,
-      "lane": 9,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n18",
-      "type": "TOUCH",
-      "beat": 16,
-      "lane": 1,
-      "width": 10,
-      "durationBeats": 0
-    },
-    {
-      "id": "n19",
-      "type": "FLOOR",
-      "beat": 17,
-      "lane": 0,
-      "width": 0,
-      "durationBeats": 0
-    },
-    {
-      "id": "n20",
-      "type": "TOUCH",
-      "beat": 18,
-      "lane": 4,
-      "width": 3,
-      "durationBeats": 0
-    },
-    {
-      "id": "n21",
-      "type": "TOUCH",
-      "beat": 19,
-      "lane": 9,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n22",
-      "type": "FLOOR",
-      "beat": 20,
-      "lane": 0,
-      "width": 0,
-      "durationBeats": 0
-    },
-    {
-      "id": "n23",
-      "type": "TOUCH",
-      "beat": 21,
-      "lane": 5,
-      "width": 2,
-      "durationBeats": 0
-    },
-    {
-      "id": "n24",
-      "type": "FLOOR",
-      "beat": 22,
-      "lane": 0,
-      "width": 0,
+      "lane": 7,
+      "width": 4,
       "durationBeats": 0
     }
   ],

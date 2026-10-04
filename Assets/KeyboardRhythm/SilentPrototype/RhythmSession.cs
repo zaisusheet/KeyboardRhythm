@@ -4,12 +4,12 @@ using System.Collections.Generic;
 namespace KeyboardRhythm.SilentPrototype
 {
     public enum Judge { Pending, Perfect, Great, Good, Miss }
-    public enum NoteState { Waiting, Holding, Completed }
+    public enum NoteState { Waiting, Holding, Completed, MissedStart }
 
     [Serializable]
     public sealed class PrototypeSettings
     {
-        // Provisional values; SPEC U02-U10 remain open.
+        // Provisional timing values; confirmed hold input rules are described in SPEC.
         public double perfectFrames = 3, greatFrames = 6, goodFrames = 9;
         public double doublePairFrames = 3, longMissGapFrames = 6;
         public double holdTickBeats = 0.5, lowBpmHoldTickBeats = 0.25, lowBpmThreshold = 120;
@@ -137,19 +137,12 @@ namespace KeyboardRhythm.SilentPrototype
         {
             // One press can start every overlapping LONG and also serve a single-note candidate.
             foreach (var note in notes)
-                if (note.IsHold && note.State == NoteState.Waiting && InArea(note, key) &&
-                    Math.Abs(now - note.TimeSeconds) <= settings.GoodSeconds + Eps && now < note.EndTimeSeconds)
+                if (note.IsHold && InArea(note, key) && now < note.EndTimeSeconds)
                 {
-                    Judge result = Grade(Math.Abs(now - note.TimeSeconds));
-                    note.State = NoteState.Holding;
-                    note.Result = note.HoldGrade = result;
-                    note.ErrorSeconds = now - note.TimeSeconds;
-                    note.IsHeld = AreaHeld(note);
-                    if (!note.IsHeld) note.GapStart = now;
-                    // Ticks are anchored to chart beats; skip any already passed before a late start.
-                    double steps = Math.Max(1, Math.Floor((now - note.TimeSeconds + Eps) / tickSeconds) + 1);
-                    note.NextTick = note.TimeSeconds + steps * tickSeconds;
-                    Count(note, "START", result, now, note.ErrorSeconds, true);
+                    if (note.State == NoteState.Waiting && Math.Abs(now - note.TimeSeconds) <= settings.GoodSeconds + Eps)
+                        BeginHold(note, now, false);
+                    else if (note.State == NoteState.MissedStart)
+                        BeginHold(note, now, true);
                 }
             RuntimeNote best = null;
             double distance = double.MaxValue;
@@ -162,6 +155,31 @@ namespace KeyboardRhythm.SilentPrototype
             if (best == null) return;
             if (best.Data.type == "DOUBLE") ProcessDouble(best, key, now);
             else FinishSingle(best, Grade(distance), now, now - best.TimeSeconds);
+        }
+
+        private void BeginHold(RuntimeNote note, double now, bool lateJoin)
+        {
+            note.State = NoteState.Holding;
+            note.IsHeld = AreaHeld(note);
+            note.GapStart = note.IsHeld ? double.NaN : now;
+            note.GapMissReported = false;
+            if (lateJoin)
+            {
+                // Keep START MISS. Joining adds no synthetic start judgement or retroactive ticks.
+                note.HoldGrade = Judge.Perfect;
+                double steps = Math.Max(1, Math.Ceiling((now - note.TimeSeconds - Eps) / tickSeconds));
+                note.NextTick = note.TimeSeconds + steps * tickSeconds;
+            }
+            else
+            {
+                Judge result = Grade(Math.Abs(now - note.TimeSeconds));
+                note.Result = note.HoldGrade = result;
+                note.ErrorSeconds = now - note.TimeSeconds;
+                // Successful start is counted once; following ticks are strictly after it.
+                double steps = Math.Max(1, Math.Floor((now - note.TimeSeconds + Eps) / tickSeconds) + 1);
+                note.NextTick = note.TimeSeconds + steps * tickSeconds;
+                Count(note, "START", result, now, note.ErrorSeconds, true);
+            }
         }
 
         private void ProcessDouble(RuntimeNote note, int key, double now)
@@ -225,8 +243,10 @@ namespace KeyboardRhythm.SilentPrototype
                 {
                     if (note.State == NoteState.Waiting)
                     {
-                        double deadline = note.TimeSeconds + settings.GoodSeconds;
-                        if (until > deadline + Eps) Choose(note, deadline, 1, ref selected, ref selectedTime, ref selectedKind);
+                        double deadline = note.IsHold ? Math.Min(note.TimeSeconds + settings.GoodSeconds, note.EndTimeSeconds) :
+                            note.TimeSeconds + settings.GoodSeconds;
+                        if (until > deadline + Eps || (note.IsHold && note.EndTimeSeconds <= until + Eps))
+                            Choose(note, deadline, 1, ref selected, ref selectedTime, ref selectedKind);
                     }
                     else if (note.State == NoteState.Holding)
                     {
@@ -240,6 +260,8 @@ namespace KeyboardRhythm.SilentPrototype
                         if (note.EndTimeSeconds <= until + Eps)
                             Choose(note, note.EndTimeSeconds, 3, ref selected, ref selectedTime, ref selectedKind);
                     }
+                    else if (note.State == NoteState.MissedStart && note.EndTimeSeconds <= until + Eps)
+                        Choose(note, note.EndTimeSeconds, 3, ref selected, ref selectedTime, ref selectedKind);
                 }
                 if (selected == null) break;
                 switch (selectedKind)
@@ -249,14 +271,23 @@ namespace KeyboardRhythm.SilentPrototype
                         selected.Result = Judge.Miss;
                         Count(selected, "HOLD GAP", Judge.Miss, selectedTime, 0, false);
                         break;
-                    case 1: FinishSingle(selected, Judge.Miss, selectedTime, 0); break;
+                    case 1:
+                        if (selected.IsHold)
+                        {
+                            selected.State = NoteState.MissedStart;
+                            selected.Result = Judge.Miss;
+                            Count(selected, "START MISS", Judge.Miss, selectedTime, 0, false);
+                        }
+                        else FinishSingle(selected, Judge.Miss, selectedTime, 0);
+                        break;
                     case 2:
                         // Grade the maintained hold independently of its start timing or gap feedback.
                         if (selected.IsHeld) Count(selected, "HOLD TICK", Judge.Perfect, selectedTime, 0, false);
                         selected.NextTick += tickSeconds;
                         break;
                     case 3:
-                        if (!selected.IsHeld && !selected.GapMissReported && selectedTime > selected.GapStart + Eps)
+                        if (selected.State == NoteState.Holding && !selected.IsHeld && !selected.GapMissReported &&
+                            selectedTime > selected.GapStart + Eps)
                             DegradeShortGap(selected, selectedTime);
                         selected.State = NoteState.Completed;
                         break;

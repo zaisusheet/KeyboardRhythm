@@ -97,8 +97,16 @@ namespace KeyboardRhythm.SilentPrototype.Editor
             Frame(session, 0.7, new[] { 12 }, new[] { 12 });
             Frame(session, 1, Empty, new[] { 12 });
             Frame(session, 1.2, Empty, new[] { 12 });
-            Frame(session, 1.3, new[] { 14 }, new[] { 14 });
-            Check(session.MissCount == 1 && session.ActiveHoldCount == 0, "Held-before-start and missed-start late entry rejected");
+            Check(session.MissCount == 1 && session.ActiveHoldCount == 0 && session.ResolvedCount == 0 &&
+                session.Notes[0].State == NoteState.MissedStart,
+                "Held-before-start cannot start or automatically join a missed LONG");
+            Frame(session, 1.3, new[] { 14 }, new[] { 12, 14 });
+            Check(session.MissCount == 1 && session.ActiveHoldCount == 1 && session.PerfectCount == 0,
+                "Fresh key joins a missed LONG without another start judgement");
+            Frame(session, 1.5, Empty, new[] { 12 });
+            Check(session.PerfectCount == 1 && session.Combo == 1 && session.Notes[0].Result == Judge.Miss,
+                "Late LONG uses PERFECT ticks while retaining START MISS");
+            CheckLateHoldRules();
             session = Session(Note("h", "LONG", 2, 3, 3, 4));
             Frame(session, 1, new[] { 12 }, new[] { 12 });
             Frame(session, 1.1, new[] { 14 }, new[] { 14 });
@@ -230,6 +238,107 @@ namespace KeyboardRhythm.SilentPrototype.Editor
             ExpectInvalid(() => Session(Note("x", "TOUCH", 0, 1, 3), Note("y", "DOUBLE", 0, 3, 2)), "Same-beat intersecting singles rejected");
             return count;
         }
+
+        private static void CheckLateHoldRules()
+        {
+            // A held F and a newly pressed R are distinct physical keys in lane 4.
+            var s = Session(Note("h", "LONG", 2, 4, 1, 4));
+            Frame(s, 0.7, new[] { 13 }, new[] { 13 });
+            Frame(s, 1, Empty, new[] { 13 });
+            Check(s.JudgementCount == 0 && s.Notes[0].State == NoteState.Waiting,
+                "Held F alone cannot start a lane-4 LONG");
+            Frame(s, 1.01, new[] { 3 }, new[] { 3, 13 });
+            Check(s.PerfectCount == 1 && s.ActiveHoldCount == 1,
+                "New R starts lane-4 LONG while F remains held");
+            Frame(s, 1.25, Empty, new[] { 13 });
+            Check(s.PerfectCount == 2 && s.Notes[0].IsHeld,
+                "After fresh R start, held F can maintain the LONG");
+
+            foreach (string type in new[] { "LONG", "FLOOR_LONG" })
+            {
+                int key = type == "LONG" ? 13 : 30;
+                int wrong = type == "LONG" ? 0 : 13;
+                NoteData data = type == "LONG" ? Note("h", type, 2, 4, 1, 4) : Floor("h", 2, 4);
+                s = Session(data);
+                Frame(s, 1.2, Empty, Empty);
+                Check(s.MissCount == 1 && s.ResolvedCount == 0 && s.ActiveHoldCount == 0 &&
+                    s.Notes[0].State == NoteState.MissedStart && s.LastJudgement.Kind == "START MISS",
+                    type + " missed start remains available until its end");
+                Frame(s, 1.4, new[] { wrong }, new[] { wrong });
+                Frame(s, 1.5, Empty, new[] { key });
+                Check(s.ActiveHoldCount == 0 && s.JudgementCount == 1,
+                    type + " wrong input and held-only input cannot join");
+                Frame(s, 1.6, new[] { key }, new[] { key });
+                Check(s.ActiveHoldCount == 1 && s.JudgementCount == 1 && s.Combo == 0,
+                    type + " off-grid late join adds no immediate judgement or combo");
+                Frame(s, 1.75, Empty, new[] { key });
+                Check(s.PerfectCount == 1 && s.MissCount == 1 && s.Combo == 1,
+                    type + " late join skips elapsed ticks and judges the next scheduled tick");
+                Frame(s, 3, Empty, Empty);
+                Check(s.PerfectCount == 5 && s.MissCount == 1 && s.GreatCount == 0 && s.GoodCount == 0 &&
+                    s.JudgementCount == 6 && s.ResolvedCount == 1 && s.Notes[0].Result == Judge.Miss,
+                    type + " late join preserves MISS and excludes end/start bonus");
+
+                s = Session(data);
+                Frame(s, 1.25, new[] { key }, new[] { key });
+                Check(s.MissCount == 1 && s.PerfectCount == 1 && s.Combo == 1 &&
+                    s.LastJudgement.Kind == "HOLD TICK" && s.LastJudgement.TimeSeconds == 1.25,
+                    type + " joining exactly on a tick includes that tick");
+                Frame(s, 1.25, Empty, new[] { key });
+                Check(s.JudgementCount == 2, type + " same-time late-join tick is counted once");
+
+                s = Session(data);
+                Frame(s, 1.2, Empty, Empty);
+                Frame(s, 2.7, Empty, Empty);
+                Check(s.MissCount == 1 && s.PerfectCount == 0 && s.ResolvedCount == 0,
+                    type + " no extra gap MISS while awaiting late participation");
+                Frame(s, 3, new[] { key }, new[] { key });
+                Frame(s, 4, new[] { key }, new[] { key });
+                Check(s.MissCount == 1 && s.PerfectCount == 0 && s.ResolvedCount == 1 && s.ActiveHoldCount == 0,
+                    type + " entry at or after end is rejected without a second MISS");
+
+                s = Session(data);
+                Frame(s, 1.3, new[] { key }, new[] { key });
+                Frame(s, 1.5, Empty, new[] { key });
+                Frame(s, 1.55, Empty, Empty);
+                Frame(s, 1.8, Empty, Empty);
+                Check(s.MissCount == 2 && s.PerfectCount == 1 && s.Combo == 0,
+                    type + " a new long gap after late entry receives its own MISS");
+                Frame(s, 1.81, new[] { key }, new[] { key });
+                Check(s.Combo == 0, type + " recovery after late entry has no immediate bonus");
+                Frame(s, 2, Empty, new[] { key });
+                Check(s.PerfectCount == 2 && s.MissCount == 2 && s.Combo == 1 && s.Notes[0].Result == Judge.Miss,
+                    type + " recovery after late entry resumes PERFECT ticks");
+            }
+
+            s = Session(Note("short", "LONG", 2, 4, 1, 0.1));
+            Frame(s, 1.05, new[] { 13 }, new[] { 13 });
+            Frame(s, 2, Empty, Empty);
+            Check(s.MissCount == 1 && s.PerfectCount == 0 && s.ResolvedCount == 1 &&
+                Math.Abs(s.LastJudgement.TimeSeconds - 1.05) < 1e-9,
+                "LONG ending before GOOD deadline misses once at end and cannot be joined");
+
+            s = Session(Note("old", "LONG", 2, 4, 1, 8), Note("new", "LONG", 4, 4, 1, 4));
+            Frame(s, 1, new[] { 13 }, new[] { 13 });
+            Frame(s, 2, Empty, new[] { 13 });
+            Check(s.ActiveHoldCount == 1 && s.Notes[1].State == NoteState.Waiting && s.PerfectCount == 5,
+                "Holding old LONG with F does not start a new LONG in the same lane");
+            Frame(s, 2.01, new[] { 3 }, new[] { 3, 13 });
+            Check(s.ActiveHoldCount == 2 && s.PerfectCount == 6,
+                "Fresh R starts the second LONG while F maintains the first");
+            Frame(s, 2.25, Empty, new[] { 13 });
+            Check(s.ActiveHoldCount == 2 && s.PerfectCount == 8 && s.Combo == 8,
+                "After R start, F holds both LONGs and each scheduled tick counts");
+
+            s = Session(Note("h", "LONG", 2, 4, 2, 4), Note("t", "TOUCH", 3.2, 4, 2));
+            Frame(s, 1.6, new[] { 13 }, new[] { 13 });
+            Check(s.MissCount == 1 && s.PerfectCount == 1 && s.ActiveHoldCount == 1 && s.Combo == 1,
+                "One fresh key can join a missed LONG and hit a simultaneous TOUCH");
+            Frame(s, 1.75, Empty, new[] { 13 });
+            Check(s.PerfectCount == 2 && s.Combo == 2,
+                "Shared TOUCH input leaves late LONG scheduled ticks intact");
+        }
+
         private static readonly int[] Empty = new int[0];
         private static void Check(bool ok, string label) { if (!ok) throw new Exception(label); count++; }
         private static void ExpectInvalid(Action action, string label)
