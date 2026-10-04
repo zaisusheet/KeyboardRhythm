@@ -123,14 +123,6 @@
       "durationBeats": 0
     },
     {
-      "id": "n015",
-      "type": "DOUBLE",
-      "beat": 8,
-      "lane": 4,
-      "width": 4,
-      "durationBeats": 0
-    },
-    {
       "id": "n016",
       "type": "DOUBLE",
       "beat": 6,
@@ -143,6 +135,142 @@
       "type": "DOUBLE",
       "beat": 7,
       "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n015",
+      "type": "DOUBLE",
+      "beat": 8,
+      "lane": 1,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n018",
+      "type": "DOUBLE",
+      "beat": 9,
+      "lane": 1,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n019",
+      "type": "TOUCH",
+      "beat": 8.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n020",
+      "type": "TOUCH",
+      "beat": 9.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n021",
+      "type": "TOUCH",
+      "beat": 10.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n022",
+      "type": "TOUCH",
+      "beat": 11.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n023",
+      "type": "TOUCH",
+      "beat": 12.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n024",
+      "type": "TOUCH",
+      "beat": 13.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n025",
+      "type": "TOUCH",
+      "beat": 14.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n026",
+      "type": "TOUCH",
+      "beat": 15.5,
+      "lane": 4,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n027",
+      "type": "DOUBLE",
+      "beat": 10,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n028",
+      "type": "DOUBLE",
+      "beat": 11,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n029",
+      "type": "DOUBLE",
+      "beat": 12,
+      "lane": 1,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n030",
+      "type": "DOUBLE",
+      "beat": 13,
+      "lane": 1,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n031",
+      "type": "DOUBLE",
+      "beat": 14,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n032",
+      "type": "DOUBLE",
+      "beat": 15,
+      "lane": 7,
+      "width": 4,
+      "durationBeats": 0
+    },
+    {
+      "id": "n034",
+      "type": "DOUBLE",
+      "beat": 16,
+      "lane": 4,
       "width": 4,
       "durationBeats": 0
     }

@@ -23,7 +23,8 @@
     },
     "title": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Chart display name (shown in selection)."
     },
     "audio": {
       "type": "object",
@@ -38,6 +39,14 @@
         },
         "chartZeroAtAudioSeconds": {
           "type": "number"
+        },
+        "songId": {
+          "type": "string",
+          "description": "Optional shared song identifier."
+        },
+        "songTitle": {
+          "type": "string",
+          "description": "Optional song display name, independent of chart title."
         }
       }
     },

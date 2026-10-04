@@ -232,6 +232,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KeyboardRhythm.SilentPrototype.SilentChartPlayer
   chartResourcePath: Charts/silent_demo
+  metronomeEnabled: 1
   settings:
     perfectFrames: 3
     greatFrames: 6

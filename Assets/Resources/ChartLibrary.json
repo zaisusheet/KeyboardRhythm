@@ -1,0 +1,8 @@
+{
+    "charts": [
+        "Charts/long_double_demo",
+        "Charts/music_demo_advanced",
+        "Charts/music_demo_basic",
+        "Charts/silent_demo"
+    ]
+}

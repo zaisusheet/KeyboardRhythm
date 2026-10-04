@@ -4,6 +4,89 @@
 
 ゲームのルールは[SPEC.md](SPEC.md)で管理する。この文書は保存済みファイルから確認できる実装状況と、実行確認の結果を記録する。確認結果には、コード・設定の検査とユーザーによる実機確認のどちらが根拠かを明記する。
 
+## 2026年10月4日：レーン中央の半透明コンボ表示
+
+- 対象：`SilentChartView`のコンボ表示。Windows、Unity 6000.6.4f1（12bfff696524）、Input System 1.20.0、uGUI 2.6.0。対象Sceneは`Assets/Scenes/SilentChartTest.unity`。基準コミット`15c06d99`。開始時から多数の未コミット変更あり。既存変更を保持。実物キーボード配列は未確認。
+- 変更点：コンボ表示を10レーンの横中央・判定ラインと出現位置の中間へ移動。1280×720基準で中心座標は(640, 401)。ノートより手前に不透明度50%の文字だけを描画し、COMBO・現在値・MAXを表示する。0～2では全体を非表示、3以上で表示。初期状態・譜面切替・再読込・読込エラー時にも非表示にする。Scene・既存.metaは今回編集していない。
+- 文書：SPEC v0.12の第18節とREADMEへ表示条件を反映。第14節のコンボ配置説明を更新。
+- 確認結果：既存の判定164件・端末補正167件・楽曲同期68件・速度／取得音87件・メトロノーム15件、計501件成功。判定・コンボ加算処理は今回変更なし。変更したビューを含むRuntime 20ソースをUnityの参照DLLで外部コンパイルし、警告0・エラー0。Gitの空白エラーなし。
+- 検証手順：`dotnet build verification/CoreChecks.csproj --no-restore -p:IntermediateOutputPath=C:/dev/verification-output/combo/core-obj/ -p:OutputPath=C:/dev/verification-output/combo/core-bin/ --verbosity quiet`の後、生成したCoreChecks.dllをdotnetで実行。Runtimeの外部コンパイル用プロジェクト・出力も`C:/dev/verification-output/combo/`へ保存し、追跡bin／objは更新していない。
+- 未確認：Unityでの実行未実施。今回の確認は.NETチェックと外部コンパイルまでで、Play Modeの実描画・ノートとの重なり・異なる画面比率での見え方・実入力は未確認。
+- 残課題・実機確認手順：Unityのインポート完了後、SilentChartTestをPlay→Enter。0～2では非表示、3以上で中央に表示、MISSで消えること、半透明文字にノートが重なっても両方見えることを確認。F5・譜面切替で消えること、FAST／LATE表示と文字が重ならないことも確認する。
+
+## 2026年10月4日：落下速度の調整と小さな取得音
+
+- 対象：Unityデモのノート表示速度と取得音。Windows、Unity 6000.6.4f1（12bfff696524）、Input System 1.20.0、uGUI 2.6.0。対象Sceneは`Assets/Scenes/SilentChartTest.unity`。基準コミット`15c06d99ad98a271796b69de50ac091fbe4ce676`。開始時から多数の未コミット変更あり。既存変更を保持して追加した。実物キーボード配列は未確認。
+- 変更点：右側へ速度スライダーと取得音チェックボックスを追加。F9／F10で0.1倍の減速／加速、F11で1.0倍。初期1.0倍・範囲0.5～3.0倍はU10のデモ用仮設定。表示の移動秒数だけを倍率で割り、プレイ中も即時反映。音楽・判定時刻・端末補正・保持加算は維持する。速度はPlayerPrefsへ保存。
+- 変更点：成功した新しい押下をRhythmSession.SuccessfulPressCountで把握し、TOUCH／FLOOR、DOUBLE成立、LONG／FLOOR_LONGの始点成功で30msの取得音を生成。最終表示が同じフレームの保持加算やMISSでも押下成功を取りこぼさない。同時取得は1音にまとめる。保持加算・MISS・範囲外・途中参加・復帰には鳴らさない。判定・コンボの従来計算は維持。
+- 変更点：取得音の初期音量は0.08、InspectorのHit Sound Volumeで0～0.2へ調整可能（仮設定）。初期ON、F4／チェックボックスで切替・保存。F3のメトロノームとは独立。OFF・譜面切替・F5・フォーカス喪失・終了で停止し、破棄時に生成音源を解放する。新規C#3ファイルへ.metaを追加。Scene・既存.meta・譜面・音源は今回編集していない。
+- 確認結果：既存判定164件・端末補正167件・楽曲同期68件・メトロノーム15件と、新規速度／取得音87件、計501件成功。範囲・倍速と移動秒数・全5ノートの同じPERFECT時刻・保持中の無音・DOUBLEの成立条件・範囲外／MISS・同時入力・同フレーム保持加算との共存・再開始カウンター・30ms波形の境界と有限値を検査した。
+- 確認結果：Unityの既存参照DLLを使いRuntime 20ソースとEditor 9ソースを別々に外部コンパイルし警告0・エラー0。Editorは今回コンパイルしたRuntime DLLを参照する。検査出力は`Temp/DemoPresentationValidation/`。自動生成csprojは編集せず、検証で更新された追跡obj2ファイルは実行前の状態へ戻した。文書のリンク・Gitの空白エラーも確認。
+- 検証手順：`dotnet build verification/CoreChecks.csproj --no-restore -p:IntermediateOutputPath=C:\dev\KeyboardRhythm\Temp\DemoPresentationValidation\core-obj\ -p:OutputPath=C:\dev\KeyboardRhythm\Temp\DemoPresentationValidation\core-bin\ --verbosity quiet`、生成したCoreChecks.dllをdotnetで実行。UnityのRun Silent Chart Checksメニューにも新規87件を接続した。
+- 未確認：Unityでの実行未実施。外部コンパイル・.NET検査の成功をPlayの動作確認とは区別する。実際のスライダー・ON／OFF・音量・PlayerPrefsの再起動復元・実機入力・配布用ビルドは未確認。
+- 文書確認：既存のSPEC第13節の`EDITOR_GUIDE.md`リンク先がプロジェクト内に存在しないことを確認。今回の機能追加では既存参照を変更せず、文書の残課題として記録する。
+- 残課題・実機確認手順：Unityでインポート完了後、SilentChartTestをPlay→Enter。右のスライダーとF9／F10／F11を操作し、ノートだけが速く／遅くなり音楽・判定中心が維持されることを確認。TOUCH／DOUBLE／LONG／FLOOR／FLOOR_LONGを取得して小さな音、保持加算・MISS・範囲外で無音、F4／チェックボックスとF3の独立を確認。F5、選曲、フォーカス外れ→Enter、Play再開始で音の停止と設定復元を確認する。
+
+## 2026年10月4日：EditorテストのCS1729修正
+
+- 原因：MusicTimingChecksがRuntimeNoteとJudgementEventのinternalコンストラクターを呼んでいた。Unityではゲーム本体とEditorが別アセンブリのためアクセスできず、CS1729が発生。従来の全ソース一括外部コンパイルではこの境界を検証できていなかった。
+- 修正：公開APIのRhythmSession.Stepから実際の押下・保持加算・MISSを発生させ、LastJudgementでFAST／LATE表示を検査する。ゲーム本体の公開範囲・判定ロジックは変更なし。
+- 検証：Unity実DLLを使いRuntime／Editorを別プロジェクトに分けた外部コンパイルで、修正前の6件のCS1729を再現。修正後は警告0・エラー0。検証用プロジェクトはC:/dev/verification-output/unity-compile/split/Editor/Editor.csproj。.NETチェックは判定164件・端末補正167件・楽曲同期68件・メトロノーム15件、計414件成功。
+- 環境：Windows、Unity 6000.6.4f1、Input System 1.20.0。対象SceneはSilentChartTest.unity。基準コミット15c06d99、既存変更を含み未コミット。実物キーボード配列は未確認。テスト生成物の追跡bin／objは復元済み。
+- 未確認：Unityでの実行未実施。Unityへ戻って自動再コンパイル後、Consoleのエラーが解消することを確認する。起動中EditorのPlayは操作していない。
+
+## 2026年10月4日：サンプル曲を178 BPMへ修正
+
+- ユーザー確認に基づきWill you still cry?のBASIC／ADVANCEDを178 BPMへ変更。約1分を維持するため、既存ノートを保持して後半を追加。BASICは176ノート・終了約60.14秒、ADVANCEDは352ノート・終了約60.31秒（開始0秒、端末補正0ms、カウントイン別）。音源・開始秒・既存.metaは保持。
+- UnityのJSONと外部エディターのサンプルを同期し、単一HTMLを再生成。対象はSilentChartTest.unity、Windows／Unity 6000.6.4f1／Input System 1.20.0、基準コミット15c06d99、既存変更を含み未コミット。実物キーボード配列は未確認。
+- 検証：譜面終了秒の計算、エディターのデータ処理17件を確認。C#判定ロジックは変更なし。Unityでの実行未実施。実際の音出し・最初の拍に対する開始秒の調整は未確認。
+
+## 2026年10月4日：指定MP3へ切替・約1分の譜面
+
+- 対象：Assets/Resources/Musics/Will_you_still_cry_.mp3を既存の楽曲サンプル2譜面から参照。音源本体・既存.meta・Scene・ユーザー変更は保持。MP3のTIT2はWill you still cry?、TBPMなし。BPM／開始秒を問い合わせ、未回答のため仮120 BPM・開始0秒とした。実際の拍に合わせた採譜は未実施。
+- 内容：music_demo_basic.jsonは119ノート、最終59秒、終了約60.15秒。advancedは238ノート、最終59.25秒、終了約60.40秒。カウントイン別・端末補正0msの場合。譜面名はWill you still cry? / BASIC (1 min)とADVANCED (1 min)。エディターのサンプルJSONと単一HTMLも更新。
+- 終了：楽曲全体の終了待ちを除去。最終ノートの判定猶予・結果余韻と端末補正の完了を待って、譜面と音楽を停止する。負の端末補正でも元の譜面終了より前に切らず、正の補正では遅れた判定を待つ。
+- 環境：Windows、Unity 6000.6.4f1、Input System 1.20.0。対象SceneはSilentChartTest.unity。基準コミット15c06d99、既存変更を含み未コミット。実物キーボード配列は未確認。
+- 検証：.NETの既存判定164件・端末補正167件・楽曲同期68件・メトロノーム15件成功。約1分の終了境界と±500ms補正を追加検査。Unity実DLLによる全C#外部コンパイル成功（警告0・エラー0）。エディターのデータ処理テストとHTML再生成も実施。追跡bin／objはテスト前の状態へ復元。
+- 未確認：Unityでの実行未実施。ユーザーの起動中Editorは操作していない。実際のMP3再生・停止、音との拍合わせ、実入力は未確認。Play→プルダウンでWill you still cry? / BASIC (1 min)→Enter→約1分後の停止を確認する。BPMと開始秒が分かればエディターで調整する。
+
+## 2026年10月4日：楽曲同期・開始秒・選曲・FAST／LATE
+
+- 対象：ユーザー指定の7機能。Unity 6000.6.4f1（12bfff696524）、Input System 1.20.0、uGUI 2.6.0、Windows。対象SceneはAssets/Scenes/SilentChartTest.unity。基準コミット15c06d99、変更は未コミット。実物キーボード／配列は未確認。
+- 楽曲：ScheduledSongAudioを追加。DSP原点とaudio.chartZeroAtAudioSecondsからAudioSource.PlayScheduledの開始時刻・再開サンプル位置を計算する。正負の開始秒、長い曲イントロ、フォーカス停止・再開、F5、譜面切替に対応。音楽と補正後のノートの両方の終了を待つ。端末補正は従来どおり表示・判定だけへ適用。空パスの旧譜面はメトロノーム／無音、非空で音源がなければエラー。
+- データ：既存schemaVersion 1へ任意のaudio.songId／songTitleを追加。titleは譜面名。譜面JSONからの相対パスでResources以下の音源を共有する。デモ用に20秒・120 BPMのClockwork Neon WAVとBASIC 32ノート／ADVANCED 64ノートの2譜面を追加。開始秒は2。音源の再生成スクリプトをtoolsに保存。既存のsilent_demo.jsonは変更していない。
+- 選曲：F1／F2を廃止しuGUI DropdownとInput System UI入力を追加。表示は譜面名、楽曲名は別欄。Resources/Chartsの追加・移動・削除をEditorで検出してChartLibrary.jsonを自動生成。手動メニューRefresh Chart Libraryも追加。実行時一覧はPlay開始時に読み込むため、追加後はPlayを再開始する。
+- 判定表示：画面の高さ40%の中央へ配置。押下誤差をFAST／LATEと絶対値msで表示。GREAT／GOODの時間は早い場合青、遅い場合赤。保持中の加算・MISSには架空の押下誤差を付けない。従来の判定ライン・判定窓を維持。
+- エディター：譜面名／楽曲名／楽曲ID、開始秒0.001刻みを編集可能。ローカル音源の試聴、再生位置を譜面0拍へ設定、Undo／Redo、JSON保存に対応。音源本体はJSONへ含めず、Unityへ別途コピー。別譜面を開くと試聴音源を解除し、異なる音源パスに変更した場合は試聴位置の適用を無効化。単一HTMLを再生成。
+- 検証：dotnet run --project verification/CoreChecks.csproj --no-restoreで既存判定164件、端末補正167件、楽曲同期／FAST・LATE62件、メトロノーム15件成功。楽曲の開始・再開、正負オフセット、端末補正との組合せによるPERFECT、相対パス／範囲外参照、誤差の符号と押下のない結果を確認。Unity実DLLで全Assets C#を外部コンパイルし警告0・エラー0。Unity検査メニューにも同期検査・登録譜面の音源存在検査を追加。
+- エディター検証：データ処理17件、Edge 154の操作48項目成功。従来の範囲選択／コピー等に加え、譜面名と楽曲名の独立、負の開始秒、ローカルWAVのmetadata読込、再生位置2.125秒の設定、Undo／Redo、保存、試聴音源の解除を確認。Node 24.21.0はVS Code Electron、Playwright 1.15.0は既存拡張機能を利用。スクリーンショットとJSONはC:/dev/verification-output/editor。最初の実行では全項目成功後のブラウザー終了時にアクセス拒否／Page closedが出たため、承認済みの制限外再実行を行った（終了コード0、出力なし）。OSの保存ダイアログは模擬ハンドル。
+- 保存済みファイル：追加Assetsには.metaを用意。既存Scene・GUID・ユーザー変更を保持。作業前の自動生成csproj／slnx、silent_demo.json、SilentChartTest.unityや、作業中に追加されたMusics/Will_you_still_cry_.mp3は編集していない。検証で更新された追跡bin／objは作業前状態へ復元済み。
+- 未確認：Unityでの実行未実施。起動中のユーザーEditorのPlayは操作していない。実機の音出し、ドロップダウン操作・実表示、音楽とノートの体感同期、フォーカス停止／再開、実キーボード、配布ビルドは未確認。音源のBPM自動解析、波形、エディター内プレイ、イベント実行、入力イベント時刻・自動遅延校正は未実装。
+- 実機確認手順：インポート後Tools > KeyboardRhythm > Open Silent Chart Test→Play→プルダウンでClockwork Neon / BASIC→Enter。音楽2秒の最初の旋律と譜面0拍が一致することを確認。ADVANCEDも同じ音源で選べること、GREAT／GOODを早く／遅く押した時の青／赤FAST／LATE、フォーカス外れ→Enter、再選択、F5、F3、F6／F7の正負補正を確認。既存のsilent_demo／long_doubleも再確認。別の音源はBPMと開始秒をエディターで設定し、JSONと音源をResourcesへ置いて再生する。
+
+## 2026年10月4日：端末ごとのノートタイミング補正
+
+- 対象：KeyboardRhythmのノート表示・判定を音に対して前後へ補正する設定。Unity 6000.6.4f1（12bfff696524）、Input System 1.20.0、Windows。対象SceneはAssets/Scenes/SilentChartTest.unity。基準コミット15c06d99、変更は未コミット。実物キーボードとJIS／US配列は未確認。
+- 実装：NoteTimingSettingsで音の基準譜面秒から端末補正msを引き、SilentChartPlayerのRhythmSession.StepとSilentChartView.Renderへ同じ値を渡す。メトロノームのBegin／PlayScheduledは未補正の時計を使用。JSONの音楽オフセット・ノートの拍数・速度・判定窓は変更しない。終了時は音側と補正したノート側の両方を待つ。
+- 操作：F6で10ms早める、F7で10ms遅らせる、Shift併用で1ms、F8で0へ戻す。デモ用の仮設定は0ms初期値・±500ms範囲（U10）。整数msをPlayerPrefsのKeyboardRhythm.NoteTimingOffsetMs.v1へ保存し、全譜面・次回起動で共用。プラスが遅い、マイナスが早い。
+- 適用：READYでは即時、開始後・停止中・終了後は次回プレイ用に保存。左下に現在値・保存値・未適用表示を追加。F5→EnterまたはF1／F2→Enterで適用。Enterでの停止解除には適用せず、判定時刻の巻き戻りや長押し途中の変更を防ぐ。
+- 検証：dotnet run --project verification/CoreChecks.csproj --no-restoreで既存判定164件・補正167件・メトロノーム拍グリッド15件が成功。5種類×0／±200／±500ms、始点のPERFECT、長押しの加算・終端、判定窓の境界、MISS期限、DOUBLEの相互差、正負の符号、負のカウントイン、保存値の上下限、再開時の値維持、再開始時の適用、音とノートを待つ終了条件を検査。UnityメニューのRun Silent Chart Checksにも補正チェックを接続。Unity実DLLで全C#を外部コンパイルし、警告0・エラー0。
+- 保存済みファイル：新規NoteTimingSettings.csとEditor/NoteTimingChecks.csは.metaを作成。既存Scene・Prefab・スクリプトGUIDとユーザー変更を維持。作業開始前から変更されていたAssembly-CSharp.csprojとAssets/Resources/Charts/silent_demo.jsonは編集していない。テスト生成物の追跡bin／objは今回の実行前の状態へ復元。
+- 未確認：Unityでの実行未実施。起動中のユーザーEditorのPlayは操作していない。実際のF6／F7／F8、PlayerPrefsの保存・再起動復元、音との同期、物理入力、フォーカス喪失・再開、配布ビルドは未確認。現在の音源はメトロノームであり、楽曲ファイル再生・入力イベント時刻・個別の遅延測定／自動校正は未実装。
+- 確認手順：Unityの再コンパイル後にSilentChartTestでPlay→Gameビュー。READYでF7を10回押し+100ms→Enter。元の拍音に対してノートの到達・判定中心が100ms遅いことを確認。プレイ中にF6を押して未適用表示と現在の判定時刻維持を確認→F5→Enterで新しい値を適用。負の値・F8・Shift併用・F1／F2・再起動復元・LONG／FLOOR_LONGも確認する。
+
+## 2026年10月4日：エディター操作とUnityデモの更新
+
+- 対象：KeyboardRhythmChartEditorの拍方向・範囲コピー、KeyboardRhythmの表示・メトロノーム。Unity 6000.6.4f1、Input System 1.20.0、Windows。対象SceneはSilentChartTest。基準コミット15c06d99、変更は未コミット。実物キーボード配列は未確認。
+- エディター：0拍／表示開始拍を下へ置き、後の拍ほど上へ表示。初期表示・ページ変更は開始拍へスクロールする。上ドラッグで拍を増やし、LONG／FLOOR_LONGの上端で伸縮する。表示盤が画面外へ伸びていたCSSの行高さも修正。
+- エディター：空き位置の矩形ドラッグで帯と交差するノートを選択。EV列まで囲むとイベントも対象。Shift+クリックで選択を追加／解除。Ctrl+C／コピー→貼り付け先の拍をクリックまたは数値入力→Ctrl+V／貼り付け。最も早い開始拍を指定先へ合わせ、相対拍・レーン・幅・長さ・任意フィールドを保持し、新規IDを付ける。既存の保存前重複チェックを維持。一括貼り付け・削除は1回でUndo／Redoできる。端末内の編集用クリップボードを使用する。
+- Unity：レーンは幅100・高さ440から幅50・高さ592へ変更し、中央500px幅へ配置。左に曲情報・操作、右にコンボ・判定数・状態を配置。判定ライン128、出現位置674。描画マスク内で従来どおり上から下へ降る。既存のScene・スクリプトGUID・サンプルJSONを維持。ビルド登録は既存のSampleSceneのみのまま。
+- Unity：実行時にクリック音を生成。initialBpmの毎拍で鳴り、4拍ごとに音程を変える（デモ用仮設定）。DSP時計で譜面・描画・PlayScheduled予約を共有。開始／再開の150ms待ち、負の拍でのカウントイン、フォーカス喪失・無効化・終了での停止、F1／F2／F5の初期化、F3のON／OFFに対応。過去のクリックをまとめて鳴らさない。AudioListenerがない場合は生成。楽曲再生・BPM変更／停止イベント・遅延補正は未実装。
+- 検証：データ処理15件、Edge 154のブラウザー操作41項目成功。上下方向の配置・移動・伸縮、範囲選択、クリック／数値指定での一括貼り付け、削除、Undo／Redo、イベント情報、JSONダウンロード、模擬保存ハンドル、復元、外部通信なし、1280px表示を確認。単一HTMLを再生成、JavaScript構文を確認。Node 24.21.0はVS CodeのElectronから利用、Playwright 1.15.0は既存拡張機能から利用。初回はテスト完了後のブラウザー終了時にアクセス拒否／Page closedが出たため、承認済みの制限外再実行も行った。OSの保存ダイアログは模擬し、実ダイアログは未確認。
+- 検証：dotnet run --project verification/CoreChecks.csproj --no-restoreで既存判定164件と拍グリッド15件が成功（90／120／180 BPM、負の拍、再開境界、4拍アクセント）。実際のUnity・Input System・uGUI・Editor DLLを参照して全Assets C#を外部コンパイルし、警告0・エラー0。検査用プロジェクトとスクリーンショット／JSONはC:/dev/verification-outputに保存。判定本体RhythmSessionは変更なし。
+- 未確認：Unityでの実行未実施。起動中のユーザーEditorのPlayは操作していない。実際の画面・音声の同期、F3切替、フォーカス外れ・再開・再読込時の無音化、実キーボード入力、編集JSONを使うPlay、配布ビルドは未確認。
+- 手順：HTMLを再読込→選択モードで範囲を囲む→コピー→貼り付け先の拍指定→貼り付け→保存。UnityはPlay停止・インポート待ち→Tools > KeyboardRhythm > Open Silent Chart Test→Play→Gameビュー→Enter。F3、フォーカス喪失・Enter、F1／F2／F5を確認する。
+
 ## 現在の到達点
 
 | 工程 | 状況 | 根拠・確認範囲 |
@@ -13,30 +96,32 @@
 | 31キー入力 | 動作確認済み | 2026年10月4日のユーザー報告。使用する31キーで入力を確認 |
 | Shiftの入力確認 | 確認済み（報告の範囲） | 2026年10月4日のユーザー報告「Shiftでの入力も確認」。詳細な操作条件は未記録 |
 | キーと10レーンの対応 | 動作確認済み | 2026年10月4日のユーザー報告「レーン別の動作を確認しました」。個別の入力条件・ログは未記録 |
-| 無音の短い譜面試作 | コード・JSON・導入手順を提供済み、実プロジェクト導入とUnity動作は未確認 | 本チャットで24ノートの試作を作成。基本24ノートと今回のLONG/DOUBLE確認16ノート、5種のノート判定と表示、コード生成UI、判定チェックを同梱 |
-| LONG・DOUBLE・長押しFLOOR | コード提供済み。物理キー単位の開始条件を明確化し、始点MISS後の途中参加と保持中PERFECTへ更新。コンパイル・判定チェック・Unity実行は未確認 | 新しい押下・物理2キー・保持・空白・復帰・共有・拍に沿う加算と、GREAT/GOOD始点からのPERFECT保持判定を確認する |
-| 次の確認対象 | LONG途中参加対応版の反映・判定チェック・Play | 既存Sceneと譜面でF保持＋R押下、始点MISS後の途中参加、途中MISS復帰、参加後PERFECTを確認する |
-| 音楽・イベント処理・GUI譜面エディター | 未実装 | 将来要件と仮判定方式・保持判定の確定ルールをSPEC v0.6とCHART_FORMAT・LONG_DOUBLE_CHECKSに記録。ノート判定は提供試作に含むが実プロジェクトで未確認 |
+| 無音の短い譜面試作 | 実プロジェクトに実装済み。外部C#コンパイル・既存判定164件成功、Unity実行は未確認 | 基本24ノートとLONG／DOUBLE16ノート、5種ノートの判定・描画。楽曲付き2譜面も追加。メトロノームを併用可能 |
+| LONG・DOUBLE・長押しFLOOR | 実装済み。外部コンパイル・既存判定164件成功、Unity実行は未確認 | 既存判定ロジックを変更せず、物理キーの開始・途中参加・保持・空白・復帰等を.NETで検査 |
+| 落下速度調整・小さな取得音 | 実装済み。追加87件とRuntime／Editorの外部コンパイル成功、Unity実行は未確認 | 右側の速度スライダー、F9／F10／F11、取得音チェックボックス・F4、設定保存。詳細と実機確認手順は本書上部 |
+| 外部GUI譜面エディター | 実装済み。データ処理15件・Edge操作41項目成功、Unity連携は未確認 | 下から上の拍、上端の伸縮、範囲選択・一括コピー／貼り付け・削除・Undo／Redo、イベント・追加情報保持、JSON保存・復元 |
+| 次の確認対象 | タイミング補正を含むUnityデモのPlay・保存・音・入力 | F6／F7／F8、正負の補正、再開時の維持、F5再開始時の適用、再起動復元。 縦長レーン、左右の情報表示、メトロノーム、F3切替、フォーカス喪失・Enter再開、F1／F2／F5初期化、エディター出力JSONの再生 |
+| 音楽・イベント処理・GUI譜面エディター | 外部GUIとメトロノームは実装。楽曲再生対応、イベント実行は未実装 | 外部エディターはC:/dev/KeyboardRhythmChartEditor。端末のノート表示・判定補正は追加済み。BPM変更・停止・個別遅延校正は未実装 |
 
 ## 記録の対象
 
 | 項目 | 内容 |
 | --- | --- |
-| 仕様 | v0.6（2026年10月4日更新）。LONG・長押しFLOORの新しい物理キー押下による開始、始点MISS後の途中参加、途中MISS復帰、保持中PERFECTを確定。LONG・DOUBLE確認版の他の仮設定を維持。TOUCH原則幅2以上、FLOOR共通レーンの中心3～8間を維持 |
+| 仕様 | v0.12（2026年10月4日更新）。端末補正、楽曲同期・選曲・FAST／LATE、落下速度調整・取得音、中央の半透明コンボ表示（3以上）に対応。外部エディターの上下方向・範囲コピー、縦長レーン・メトロノームも維持。schemaVersion 1 |
 | Unity Editor | 6000.6.4f1（リビジョン`12bfff696524`） |
 | Input System | 1.20.0 |
-| OS | Windows（現在の作業環境） |
-| キーボード | 31キー入力とShiftの入力確認はユーザー報告により確認済み。配列（JIS・US等）、型番、詳細な操作条件は未記録 |
+| OS | Windows（今回の作業・自動チェック環境） |
+| キーボード | 今回の実物キー入力・JIS／US配列は未確認。ブラウザーは自動操作の合成キー入力。以前の31キー・Shiftのユーザー報告を維持 |
 | 入力設定 | `ProjectSettings/ProjectSettings.asset`の`activeInputHandler: 1`。新Input Systemのみ有効 |
 | Universal RP | 17.6.0 |
 | Test Framework | 1.8.0 |
 | uGUI | 2.6.0 |
-| 対象Scene | 入力確認：`Assets/InputTest.unity`。その他：`Assets/Scenes/SampleScene.unity`、`Assets/Scenes/GamePlayTest.unity` |
-| 基準コミット | 前回コード確認時：`4ba6512806a9b46016445868e363a0124faa9398`（`Generate keyboard input display at runtime`）。今回の実機確認に対応するコミットは未取得 |
-| 未コミット変更 | 現在のGit状態は未取得。前回コード確認時は`Assembly-CSharp.csproj`と現行`KeyboardInputCheck.cs`に変更、保存版2ファイルと各`.meta`に未追跡ファイルあり。今回の提供物は5種ノートの判定・表示・新規確認譜面・チェック・説明文書・SPEC・本書の更新版。実リポジトリの状態は今回未取得 |
-| 確認方法 | 今回：両JSONの構文・範囲・長さ・重複・終端、基本24ノートとNoteLayoutの維持、C#字句と文書の静的確認。.NETコアチェックは実行を試みたがdotnetがなく未実行。Unity操作・今回のC#コンパイル・同梱判定チェック・ビルド・実リポジトリの再検査は未実施。入力確認済みの根拠は以前のユーザー報告 |
+| 対象Scene | 今回：Assets/Scenes/SilentChartTest.unity（SilentChartPlayerの既存GUIDを維持、metronomeEnabled: 1）。プルダウンで譜面切替。その他のSceneは変更なし |
+| 基準コミット | KeyboardRhythm：15c06d99（作業開始時）。今回の変更は未コミット。KeyboardRhythmChartEditorはGitリポジトリなし |
+| 未コミット変更 | 有。今回：NoteTimingSettings・NoteTimingChecksと.meta、プレイヤー・ビュー・検査メニュー・verificationソース・関連文書。作業前からのAssembly-CSharp.csprojとsilent_demo.jsonの変更も保持。前回：Unityのプレイヤー・ビュー・拍音2ソースと.meta・Scene・verificationのソース・README／SPEC／STATUS。エディターのソース・再生成HTML・テスト・関連文書。実行による既存追跡bin／objの変更は復元済み |
+| 確認方法 | 今回：補正167件・既存判定164件・拍グリッド15件成功、Unity DLLで全C#外部コンパイル成功（警告・エラー0）。以前：JavaScriptデータ処理15件、Edge 154のGUI操作41項目、.NET判定164件、拍グリッド15件が成功。Unity 6000.6.4f1の実DLLで全C#を外部コンパイルし警告・エラー0件。Unityでの実行未実施。OS保存ダイアログ・Play Mode・音出し・入力・配布ビルドは未確認 |
 
-環境情報は前回のファイル確認結果を引き継いでおり、今回はプロジェクトファイルから再取得していない。前回は`ProjectSettings/ProjectVersion.txt`、`Packages/manifest.json`を参照し、上記主要パッケージのバージョンは`Packages/packages-lock.json`とも一致していた。
+今回、Unity環境情報をKeyboardRhythmのProjectVersion.txtとPackages/manifest.jsonから再取得した。前回は`ProjectSettings/ProjectVersion.txt`、`Packages/manifest.json`を参照し、上記主要パッケージのバージョンは`Packages/packages-lock.json`とも一致していた。
 
 ## 実装済み・設定済み
 

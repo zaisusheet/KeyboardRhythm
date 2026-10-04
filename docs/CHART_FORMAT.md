@@ -1,19 +1,22 @@
-# 譜面形式 v1（無音試作）
+# 譜面形式 v1（楽曲再生対応）
 
-更新日：2026年10月4日。将来の音楽・イベント・外部GUI編集を見据えた形式v1。今回の表示・配置方針の変更による構造変更はなく、schemaVersionは1を維持する。判定幅やコンボの最終仕様を確定するものではない。
+更新日：2026年10月4日。楽曲再生・イベント保持・外部GUI編集に対応する形式v1。今回の表示・配置方針の変更による構造変更はなく、schemaVersionは1を維持する。判定幅やコンボの最終仕様を確定するものではない。
+
+端末のノートタイミング補正はJSONへ含めず、UnityのPlayerPrefsに保存する。プラス値でノートの表示と判定を遅らせ、マイナス値で早める。楽曲再生では `ノート時刻 = 音楽の再生秒 - audio.chartZeroAtAudioSeconds - 端末補正ms / 1000` とし、譜面固有の基準位置と端末補正を分ける。詳細は[SPEC第15節](SPEC.md#15-端末ごとのノート表示判定のタイミング補正)。
 
 ## 設計
 
 UTF-8のJSONを正本とする。UnityのScene、Prefab、GUIDやScriptableObjectの参照を譜面に入れない。将来、Unity以外で動くGUIでも同じJSONを読み書きできる。現在のUnityローダーは `JsonUtility` を使用し、追加パッケージは不要。
 
-現在の試作は `Assets/Resources/Charts/silent_demo.json` または `long_double_demo.json` をResources経由で読む。F1/F2で切り替えられる。これは読込方法の試作であり、将来ユーザーが追加した任意ファイルを読む仕組みではない。外部GUIの書出し結果は、まずこのJSONに置き換えてUnityで確認できる。将来は外部ファイルローダーを追加し、ChartDataと判定処理を再利用する。
+現在のプレイヤーは `Assets/Resources/Charts/` 以下のJSONをResources経由で読む。任意のJSONファイル名を使用でき、Editorが `Assets/Resources/ChartLibrary.json` の一覧を自動更新する。プルダウンの表示名は `title`。音源は例えば `Assets/Resources/Music/song.wav`、JSONの相対パスは `../Music/song.wav`。Resources外の絶対パス・URLには対応しない。将来の外部ファイルローダーとは分ける。
 
 | 項目 | 意味 |
 | --- | --- |
 | `schemaVersion` | 構造の版。現在は1。非互換の変更時は版を上げ、移行処理を用意する |
 | `chartId` / `title` | 譜面識別子と表示名 |
-| `audio.path` | 将来の楽曲ファイルの相対参照。譜面ファイルのあるフォルダを起点とし `/` を使用。空文字は音楽なし。現在のプレイヤーは再生しない |
-| `audio.chartZeroAtAudioSeconds` | 譜面の0秒が、音楽の何秒に対応するか。将来は `譜面秒 = 音楽の再生秒 - この値`。例えば1.2なら譜面beat 0を音楽1.2秒に合わせる。無音試作では使用しない |
+| `audio.path` | 楽曲ファイルの相対参照。譜面ファイルのあるフォルダを起点とし `/` を使用。空文字は音楽なし。UnityのResources以下からAudioClipとして読み込む |
+| `audio.songId` / `audio.songTitle` | 任意の楽曲IDと楽曲名。同じ曲の複数譜面で共用。未指定時は音源ファイル名を表示。譜面のchartId／titleとは独立 |
+| `audio.chartZeroAtAudioSeconds` | 譜面の0秒が、音楽の何秒に対応するか。`譜面秒 = 音楽の再生秒 - この値`。例えば1.2なら譜面beat 0を音楽1.2秒に合わせる。負の値も可。音楽なしでは使用しない |
 | `timing.initialBpm` | 初期BPM。四分音符1つを1拍とする。現在は一定BPMのみ |
 | `notes` | ノート配列。順序は問わず、読込時に時刻・ID順で並べる |
 | `events` | イベント配列。空なら `[]`。タグ・パラメーターを保持するが、現在は実行しない |
@@ -87,3 +90,18 @@ Unityの参考資料：
 - [Time.realtimeSinceStartupAsDouble](https://docs.unity3d.com/6000.6/Documentation/ScriptReference/Time-realtimeSinceStartupAsDouble.html)
 - [AudioSettings.dspTime](https://docs.unity3d.com/6000.6/Documentation/ScriptReference/AudioSettings-dspTime.html)
 - [AudioSource.PlayScheduled](https://docs.unity3d.com/6000.6/Documentation/ScriptReference/AudioSource.PlayScheduled.html)
+
+
+## 楽曲付きの例
+
+```json
+"title": "Clockwork Neon / BASIC",
+"audio": {
+  "path": "../Music/clockwork_neon.wav",
+  "songId": "clockwork_neon",
+  "songTitle": "Clockwork Neon",
+  "chartZeroAtAudioSeconds": 2
+}
+```
+
+上記はClockwork Neonの形式例。現在のmusic_demo_basic.jsonとmusic_demo_advanced.jsonは、../Musics/Will_you_still_cry_.mp3を共有する約1分の譜面（178 BPM、開始秒0）。以下の計算は上記形式例の値を用いる。音楽の2秒が譜面0拍で、120 BPMのbeat 4は音楽4秒。端末補正+100msなら表示・判定中心は音楽4.1秒となる。開始秒-1なら譜面0拍の1秒後に音楽が始まる。エディターでは開始秒を直接入力するか、音源を試聴して現在位置を指定する。音源ファイルはJSONへ含めない。

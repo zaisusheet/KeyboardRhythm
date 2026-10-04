@@ -82,6 +82,8 @@ namespace KeyboardRhythm.SilentPrototype
         private readonly double tickSeconds;
         public IReadOnlyList<RuntimeNote> Notes { get { return notes; } }
         public JudgementEvent LastJudgement { get; private set; }
+        // Successful new presses only, independent of hold ticks and the last visible feedback.
+        public int SuccessfulPressCount { get; private set; }
         public int Combo { get; private set; }
         public int MaxCombo { get; private set; }
         public int PerfectCount { get; private set; }
@@ -317,6 +319,7 @@ namespace KeyboardRhythm.SilentPrototype
         private void Count(RuntimeNote note, string kind, Judge result, double now, double error, bool timed)
         {
             LastJudgement = new JudgementEvent(note, kind, result, now, error, timed);
+            if (timed && result != Judge.Miss && result != Judge.Pending) SuccessfulPressCount++;
             switch (result) {
                 case Judge.Perfect: PerfectCount++; break;
                 case Judge.Great: GreatCount++; break;

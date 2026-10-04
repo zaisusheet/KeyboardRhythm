@@ -53,15 +53,23 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.6.4f1\Editor\Data\BCLExtensions\TargetingPacks\netstandard2.1\analyzers\dotnet\roslyn4.0\cs\System.Text.Json.SourceGeneration.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\NoteHitSound.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\NoteTimingSettings.cs" />
     <Compile Include="Assets\Scripts\Input\KeyboardInputCheck.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\RhythmSession.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\SilentChartPlayer.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\KeyboardLaneInput.cs" />
     <Compile Include="Assets\TutorialInfo\Readme.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\SilentChartView.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\ChartLibrary.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\ScheduledSongAudio.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\MusicTiming.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\ChartData.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\MetronomeBeatGrid.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\BeatMetronome.cs" />
     <Compile Include="Assets\KeyboardRhythm\SilentPrototype\NoteLayout.cs" />
     <Compile Include="Assets\NewEmptyCSharpScript.cs" />
+    <Compile Include="Assets\KeyboardRhythm\SilentPrototype\DemoPresentationSettings.cs" />
     <Compile Include="Assets\Scripts\Input\KeyboardInputCheck_v1.cs" />
     <Compile Include="Assets\CSharpCheck.cs" />
     <Compile Include="Assets\Scripts\Input\KeyboardInputCheck_v0.cs" />

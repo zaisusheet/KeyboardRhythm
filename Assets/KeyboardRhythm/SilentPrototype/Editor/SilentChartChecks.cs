@@ -13,13 +13,18 @@ namespace KeyboardRhythm.SilentPrototype.Editor
             try
             {
                 int count = GameplayCoreChecks.Run();
-                foreach (string path in new[] { "Charts/silent_demo", "Charts/long_double_demo" })
+                count += NoteTimingChecks.Run();
+                count += MusicTimingChecks.Run();
+                count += DemoPresentationChecks.Run();
+                foreach (string path in ChartLibrary.LoadPaths("Charts/silent_demo"))
                 {
                     TextAsset asset = Resources.Load<TextAsset>(path);
                     if (asset == null) throw new Exception("Missing " + path);
                     ChartData chart = JsonUtility.FromJson<ChartData>(asset.text);
                     ChartValidation.ValidateSilentPlayer(chart);
                     new RhythmSession(chart, new PrototypeSettings());
+                    string audioPath = MusicTiming.ResourcePath(path, chart.audio.path);
+                    if (audioPath != "" && Resources.Load<AudioClip>(audioPath) == null) throw new Exception("Missing audio: " + audioPath);
                     count++;
                 }
                 var tagged = new ChartData { schemaVersion = 1, chartId = "event-check", title = "Event check",

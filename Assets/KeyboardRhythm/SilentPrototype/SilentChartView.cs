@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 namespace KeyboardRhythm.SilentPrototype
 {
@@ -21,14 +23,22 @@ namespace KeyboardRhythm.SilentPrototype
             public Text Label;
         }
         private readonly List<NoteWidgets> noteWidgets = new List<NoteWidgets>();
-        private Text title, status, feedback, counts, hint;
-        private const float HitY = 180, SpawnY = 600, LaneWidth = 100, BoardLeft = 140, BoardBottom = 130;
+        private GameObject ownedEventSystem;
+        private Dropdown chartDropdown;
+        private Text timingFeedback;
+        private Slider speedSlider;
+        private Toggle hitSoundToggle;
+        private Text speedLabel;
+        // uGUI creates this child while the list is open (including its closing fade).
+        public bool IsChartMenuOpen => chartDropdown != null && chartDropdown.transform.Find("Dropdown List") != null;
+        private Text title, status, feedback, counts, hint, combo, audioStatus, timingStatus;
+        private const float HitY = 128, SpawnY = 674, LaneWidth = 50, BoardLeft = 390, BoardBottom = 106;
         private static readonly Color Background = new Color(0.045f, 0.055f, 0.09f);
 
         public SilentChartView(Transform owner)
         {
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            canvasObject = new GameObject("GeneratedSilentChartCanvas", typeof(Canvas), typeof(CanvasScaler));
+            canvasObject = new GameObject("GeneratedSilentChartCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasObject.transform.SetParent(owner, false);
             Canvas canvas = canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -41,37 +51,151 @@ namespace KeyboardRhythm.SilentPrototype
             stage.anchorMin = stage.anchorMax = new Vector2(0.5f, 0.5f);
             stage.pivot = new Vector2(0.5f, 0.5f);
             ImageOf(stage, Background);
-            title = TextAt("Title", stage, 30, 667, 1220, 36, 24, TextAnchor.MiddleLeft);
-            hint = TextAt("Hint", stage, 30, 625, 1220, 32, 15, TextAnchor.MiddleLeft);
+            ImageOf(Rect("SongPanel", stage, 20, 20, 300, 680), new Color(0.07f, 0.09f, 0.14f));
+            ImageOf(Rect("ResultPanel", stage, 960, 20, 300, 680), new Color(0.07f, 0.09f, 0.14f));
+            TextAt("SongHeading", stage, 40, 648, 260, 32, 18, TextAnchor.MiddleLeft).text = "KEYBOARD RHYTHM";
+            title = TextAt("Title", stage, 40, 442, 260, 136, 18, TextAnchor.UpperLeft);
+            title.resizeTextForBestFit = true;
+            title.resizeTextMinSize = 12;
+            title.resizeTextMaxSize = 18;
+            hint = TextAt("Hint", stage, 40, 188, 260, 246, 15, TextAnchor.UpperLeft);
+            audioStatus = TextAt("AudioStatus", stage, 40, 110, 260, 65, 16, TextAnchor.UpperLeft);
+            timingStatus = TextAt("TimingStatus", stage, 40, 30, 260, 72, 13, TextAnchor.UpperLeft);
 
             for (int i = 0; i < 10; i++)
             {
-                RectTransform lane = Rect("Lane" + (i + 1), stage, BoardLeft + i * LaneWidth, 170, LaneWidth - 2, 440);
+                RectTransform lane = Rect("Lane" + (i + 1), stage, BoardLeft + i * LaneWidth, BoardBottom, LaneWidth - 2, 592);
                 lanes[i] = ImageOf(lane, new Color(0.09f, 0.12f, 0.19f));
-                TextAt("Number", stage, BoardLeft + i * LaneWidth, 582, LaneWidth - 2, 26, 17).text = (i + 1).ToString();
-                TextAt("Keys", stage, BoardLeft + i * LaneWidth, 111, LaneWidth - 2, 54, 14).text =
+                TextAt("Number", stage, BoardLeft + i * LaneWidth, 674, LaneWidth - 2, 24, 15).text = (i + 1).ToString();
+                TextAt("Keys", stage, BoardLeft + i * LaneWidth, 42, LaneWidth - 2, 60, 13).text =
                     KeyboardLaneInput.Labels[i].Replace(" / ", "\n");
             }
             float floorLeft = BoardLeft + (NoteLayout.FloorLeftCenterLane - 0.5f) * LaneWidth;
             float floorWidth = (NoteLayout.FloorRightCenterLane - NoteLayout.FloorLeftCenterLane) * LaneWidth;
-            floorKeyIndicator = ImageOf(Rect("SpaceIndicator", stage, floorLeft, 91, floorWidth, 18),
+            floorKeyIndicator = ImageOf(Rect("SpaceIndicator", stage, floorLeft, 20, floorWidth, 18),
                 new Color(0.20f, 0.12f, 0.30f));
-            TextAt("SpaceLabel", stage, floorLeft, 91, floorWidth, 18, 13).text = "SPACE / FLOOR";
+            TextAt("SpaceLabel", stage, floorLeft, 20, floorWidth, 18, 13).text = "SPACE / FLOOR";
             ImageOf(Rect("JudgeLine", stage, BoardLeft, HitY, 10 * LaneWidth, 3), new Color(0.4f, 0.9f, 1f));
-            // Clip long tails at the lane top so they do not cover the title or instructions.
-            noteLayer = Rect("Notes", stage, BoardLeft, BoardBottom, 10 * LaneWidth, 480);
+            // Keep all moving notes inside the tall central lane area.
+            noteLayer = Rect("Notes", stage, BoardLeft, BoardBottom, 10 * LaneWidth, 568);
             noteLayer.gameObject.AddComponent<RectMask2D>();
-            feedback = TextAt("Feedback", stage, 40, 48, 550, 40, 25, TextAnchor.MiddleLeft);
-            counts = TextAt("Counts", stage, 610, 48, 630, 40, 16, TextAnchor.MiddleRight);
-            status = TextAt("Status", stage, 40, 8, 1200, 32, 16, TextAnchor.MiddleLeft);
+            // Draw translucent text over the notes at the centre of their travel area.
+            combo = TextAt("Combo", stage, BoardLeft, (HitY + SpawnY) * 0.5f - 72, 10 * LaneWidth, 144, 36, TextAnchor.MiddleCenter);
+            combo.color = new Color(0.88f, 0.94f, 1f, 0.5f);
+            combo.gameObject.SetActive(false);
+            var feedbackRoot = Rect("JudgementFeedback", canvasObject.transform, 0, 0, 400, 88);
+            feedbackRoot.anchorMin = feedbackRoot.anchorMax = new Vector2(0.5f, 0.4f);
+            feedbackRoot.pivot = new Vector2(0.5f, 0.5f);
+            ImageOf(feedbackRoot, new Color(0.03f, 0.04f, 0.08f, 0.78f));
+            feedback = TextAt("Feedback", feedbackRoot, 0, 38, 400, 46, 32, TextAnchor.MiddleCenter);
+            timingFeedback = TextAt("TimingFeedback", feedbackRoot, 0, 4, 400, 34, 24, TextAnchor.MiddleCenter);
+            feedbackRoot.gameObject.SetActive(false);
+            counts = TextAt("Counts", stage, 980, 190, 260, 156, 19, TextAnchor.UpperLeft);
+            status = TextAt("Status", stage, 980, 40, 260, 136, 14, TextAnchor.UpperLeft);
+        }
+
+        public void SetChoices(List<string> names, int current, Action<int> onChange)
+        {
+            if (EventSystem.current == null)
+            {
+                ownedEventSystem = new GameObject("ChartSelectionEventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+                ownedEventSystem.transform.SetParent(canvasObject.transform.parent, false);
+                ownedEventSystem.GetComponent<EventSystem>().sendNavigationEvents = false;
+                ownedEventSystem.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
+            }
+            TextAt("ChartLabel", stage, 40, 618, 260, 24, 14, TextAnchor.MiddleLeft).text = "SELECT CHART";
+            GameObject dropdownObject = DefaultControls.CreateDropdown(new DefaultControls.Resources());
+            dropdownObject.name = "ChartSelection";
+            dropdownObject.transform.SetParent(stage, false);
+            var rect = (RectTransform)dropdownObject.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero;
+            rect.anchoredPosition = new Vector2(40, 580);
+            rect.sizeDelta = new Vector2(260, 36);
+            chartDropdown = dropdownObject.GetComponent<Dropdown>();
+            chartDropdown.navigation = new Navigation { mode = Navigation.Mode.None };
+            foreach (Text label in dropdownObject.GetComponentsInChildren<Text>(true))
+            {
+                label.font = font;
+                label.fontSize = 15;
+                label.color = new Color(0.08f, 0.1f, 0.15f);
+            }
+            chartDropdown.ClearOptions();
+            chartDropdown.AddOptions(names);
+            chartDropdown.SetValueWithoutNotify(current);
+            chartDropdown.onValueChanged.AddListener(index =>
+            {
+                onChange(index);
+                if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+            });
+            Text arrow = TextAt("ArrowLabel", rect, 232, 0, 24, 36, 16);
+            arrow.text = "v";
+            arrow.color = new Color(0.08f, 0.1f, 0.15f);
+        }
+
+        public void SetDemoControls(ScrollSpeedSettings speed, bool soundEnabled,
+            Action<int> onSpeedChange, Action<bool> onSoundChange)
+        {
+            speedLabel = TextAt("ScrollSpeedLabel", stage, 980, 436, 260, 26, 18, TextAnchor.MiddleLeft);
+            GameObject sliderObject = DefaultControls.CreateSlider(new DefaultControls.Resources());
+            sliderObject.name = "ScrollSpeed";
+            PlaceControl(sliderObject, 980, 398, 250, 28);
+            speedSlider = sliderObject.GetComponent<Slider>();
+            speedSlider.navigation = new Navigation { mode = Navigation.Mode.None };
+            speedSlider.minValue = ScrollSpeedSettings.MinimumTenths;
+            speedSlider.maxValue = ScrollSpeedSettings.MaximumTenths;
+            speedSlider.wholeNumbers = true;
+            sliderObject.transform.Find("Background").GetComponent<Image>().color = new Color(0.15f, 0.2f, 0.3f);
+            speedSlider.fillRect.GetComponent<Image>().color = new Color(0.2f, 0.7f, 0.9f);
+            speedSlider.handleRect.GetComponent<Image>().color = Color.white;
+            speedSlider.onValueChanged.AddListener(value =>
+            {
+                onSpeedChange(Mathf.RoundToInt(value));
+                if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+            });
+
+            GameObject toggleObject = DefaultControls.CreateToggle(new DefaultControls.Resources());
+            toggleObject.name = "HitSound";
+            PlaceControl(toggleObject, 980, 352, 260, 32);
+            hitSoundToggle = toggleObject.GetComponent<Toggle>();
+            hitSoundToggle.navigation = new Navigation { mode = Navigation.Mode.None };
+            hitSoundToggle.targetGraphic.color = new Color(0.15f, 0.2f, 0.3f);
+            hitSoundToggle.graphic.color = new Color(0.2f, 0.9f, 0.65f);
+            Text toggleLabel = toggleObject.GetComponentInChildren<Text>();
+            toggleLabel.font = font;
+            toggleLabel.fontSize = 17;
+            toggleLabel.color = Color.white;
+            toggleLabel.text = "Hit sound (F4)";
+            hitSoundToggle.onValueChanged.AddListener(enabled =>
+            {
+                onSoundChange(enabled);
+                if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+            });
+            UpdateDemoControls(speed, soundEnabled);
+        }
+
+        public void UpdateDemoControls(ScrollSpeedSettings speed, bool soundEnabled)
+        {
+            speedLabel.text = "SCROLL SPEED  " + speed.Multiplier.ToString("0.0") + "x";
+            speedSlider.SetValueWithoutNotify(speed.Tenths);
+            hitSoundToggle.SetIsOnWithoutNotify(soundEnabled);
+        }
+
+        private void PlaceControl(GameObject obj, float x, float y, float width, float height)
+        {
+            obj.transform.SetParent(stage, false);
+            var rect = (RectTransform)obj.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero;
+            rect.anchoredPosition = new Vector2(x, y);
+            rect.sizeDelta = new Vector2(width, height);
         }
 
         public void SetChart(ChartData chart, RhythmSession session)
         {
+            combo.gameObject.SetActive(false);
             foreach (var widgets in noteWidgets) UnityEngine.Object.Destroy(widgets.Root.gameObject);
             noteWidgets.Clear();
-            title.text = chart.title + " | " + chart.timing.initialBpm + " BPM | " + session.Notes.Count + " notes";
-            hint.text = "Enter: start/resume / F1: basic / F2: LONG+DOUBLE / F5: restart / Events: " + chart.events.Length + " (ignored)";
+            title.text = "CHART  " + chart.title + "\nSONG  " + (string.IsNullOrWhiteSpace(chart.audio.songTitle) ? (string.IsNullOrEmpty(chart.audio.path) ? "Metronome / Silent" : System.IO.Path.GetFileNameWithoutExtension(chart.audio.path)) : chart.audio.songTitle) + "\n\n" + chart.timing.initialBpm + " BPM\n" + session.Notes.Count + " notes\n" + chart.events.Length + " events (ignored)";
+            hint.text = "Enter   Start / Resume\nMouse   Select chart above\nF3   Metronome on / off\nF4   Hit sound on / off\nF5   Restart / apply offset\nF6/F7   Offset -/+10 ms\nShift + F6/F7   1 ms steps\nF8   Reset offset\nF9/F10   Speed -/+0.1x\nF11   Reset speed to 1.0x\nFocus loss pauses play";
             foreach (RuntimeNote note in session.Notes)
             {
                 bool floor = note.IsFloor;
@@ -113,7 +237,7 @@ namespace KeyboardRhythm.SilentPrototype
         }
 
         public void Render(RhythmSession session, double chartSeconds, double travelSeconds,
-            bool[] held, string state)
+            bool[] held, string state, bool metronomeEnabled, double audioSeconds, NoteTimingSettings noteTiming, bool hasSong, double zeroAtAudio)
         {
             for (int i = 0; i < lanes.Length; i++)
                 lanes[i].color = held[i] ? new Color(0.16f, 0.35f, 0.40f) : new Color(0.09f, 0.12f, 0.19f);
@@ -151,25 +275,34 @@ namespace KeyboardRhythm.SilentPrototype
                 }
             }
             JudgementEvent last = session.LastJudgement;
-            feedback.text = last == null ? "Press a key at the line" :
-                last.Result.ToString().ToUpperInvariant() + (last.Result == Judge.Miss ? "" :
-                    (last.HasTimingError ? "  " + (last.ErrorSeconds * 1000).ToString("+0.0;-0.0;0.0") + " ms" : "")) +
-                (last == null ? "" : "  " + last.Kind);
-            counts.text = "Events: P " + session.PerfectCount + "  GR " + session.GreatCount + "  GD " + session.GoodCount +
-                "  M " + session.MissCount + "    Combo " + session.Combo + " / Max " + session.MaxCombo;
-            status.text = state + " | Time " + chartSeconds.ToString("0.00") + " s | " +
-                session.ResolvedCount + "/" + session.Notes.Count + " notes finished | Active holds " + session.ActiveHoldCount;
+            feedback.transform.parent.gameObject.SetActive(last != null);
+            feedback.text = last == null ? "" : last.Result.ToString().ToUpperInvariant();
+            timingFeedback.text = MusicTiming.TimingLabel(last);
+            timingFeedback.color = last != null && last.HasTimingError && (last.Result == Judge.Great || last.Result == Judge.Good) && last.ErrorSeconds != 0 ?
+                (last.ErrorSeconds < 0 ? new Color(0.25f, 0.65f, 1f) : new Color(1f, 0.3f, 0.3f)) : Color.white;
+            combo.gameObject.SetActive(session.Combo >= 3);
+            combo.text = "<size=18>COMBO</size>\n" + session.Combo + "\n<size=18>MAX " + session.MaxCombo + "</size>";
+            counts.text = "PERFECT   " + session.PerfectCount + "\nGREAT       " + session.GreatCount + "\nGOOD        " + session.GoodCount + "\nMISS          " + session.MissCount;
+            status.text = state + "\n\n" + (hasSong ? "Audio " + Math.Max(0, MusicTiming.AudioSeconds(audioSeconds, zeroAtAudio)).ToString("0.00") + " s\n" : "") + "Clock " + audioSeconds.ToString("0.00") + " s\nNotes " + chartSeconds.ToString("0.00") + " s\n" +
+                session.ResolvedCount + "/" + session.Notes.Count + " notes finished\nActive holds " + session.ActiveHoldCount;
+            audioStatus.text = (hasSong ? "SONG AUDIO\n" : "NO SONG AUDIO\n") + (metronomeEnabled ? "Metronome ON (F3)" : "Metronome OFF (F3)");
+            timingStatus.text = "NOTE OFFSET " + noteTiming.ActiveMilliseconds.ToString("+0;-0;0") + " ms\n" +
+                (noteTiming.HasPendingChange ? "Saved: " + noteTiming.SavedMilliseconds.ToString("+0;-0;0") + " ms (pending)\nF5, then Enter to apply" :
+                "+ = later / - = earlier\nSaved on this device");
         }
 
         public void ShowError(string message)
         {
-            title.text = "Silent chart could not be loaded";
-            hint.text = "Check Console and the JSON file. Press F5 after fixing it.";
+            combo.gameObject.SetActive(false);
+            feedback.text = timingFeedback.text = "";
+            feedback.transform.parent.gameObject.SetActive(false);
+            title.text = "Chart could not be loaded";
+            hint.text = "Check Console and the JSON file.\nPress F5 after fixing it.";
             status.text = message;
             foreach (var widgets in noteWidgets) widgets.Root.gameObject.SetActive(false);
         }
 
-        public void Dispose() { if (canvasObject != null) UnityEngine.Object.Destroy(canvasObject); }
+        public void Dispose() { if (ownedEventSystem != null) UnityEngine.Object.Destroy(ownedEventSystem); if (canvasObject != null) UnityEngine.Object.Destroy(canvasObject); }
 
         private static RectTransform Rect(string name, Transform parent, float x, float y, float w, float h)
         {

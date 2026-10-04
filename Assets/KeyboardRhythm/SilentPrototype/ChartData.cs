@@ -20,8 +20,9 @@ namespace KeyboardRhythm.SilentPrototype
     public sealed class AudioData
     {
         public string path;
-        // Future audio clock: chartSeconds = audioPlaybackSeconds - this value.
-        // The silent clock intentionally does not use this field.
+        public string songId;
+        public string songTitle;
+        // Raw chart seconds = audio playback seconds - this value.
         public double chartZeroAtAudioSeconds;
     }
 

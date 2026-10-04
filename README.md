@@ -1,60 +1,49 @@
-# KeyboardRhythm：無音のLONG・DOUBLE確認版（始点MISS後の途中参加対応）
+# KeyboardRhythm：楽曲付きデモ
 
-2026年10月4日。Unity 6000.6・新Input System・uGUIを使用する既存プロジェクト向け。音楽なしの試作にLONG、DOUBLE、長押しFLOORを追加した。TOUCHは通常幅2以上、FLOORは共通10レーンのレーン3中心～8中心の表示を維持する。前回の24ノート譜面はそのまま残している。
+Unity 6000.6.4f1、新Input System 1.20.0、uGUIを使う10レーン＋Spaceのリズムゲーム。2026年10月4日更新。
 
-**提供環境ではUnity/C#コンパイラーを使えないため、今回のコンパイル・判定テスト・Playは未確認。** JSONとソース・文書の静的整合性を確認し、実際の判定コードを検査するUnityメニューと.NET用チェックを同梱した。
+## プレイ
 
-## 今回の変更
+1. Unityのインポート・コンパイル完了後、`Tools > KeyboardRhythm > Open Silent Chart Test` を開いてPlay。
+2. 左上のプルダウンで **Will you still cry? / BASIC (1 min)** または **Will you still cry? / ADVANCED (1 min)** を選択し、Enterで開始。
+3. 指定MP3（Musics/Will_you_still_cry_.mp3）に、約1分のBASIC 176ノート／ADVANCED 352ノートを配置。BPMはユーザー確認済みの178、開始秒0。音楽に合わせた採譜は未実施。楽曲・ノート描画・判定はDSP時計を共用する。
 
-LONGは保持済みキーだけで開始せず、物理キーごとの新しい押下を受け付ける。Fを保持したままRを押す場合も同じレーン4の新しい開始として扱う。始点をMISSしても終端までノートを残し、新しい押下で残り区間へ途中参加できる。開始済みLONGの途中MISSからの復帰も許可する。始点・過去のMISSは残し、参加・復帰後の定期保持判定はPERFECT。長押しFLOORにも同じ条件を適用する。これらはユーザー指定による確定仕様。
+中央に縦長レーン、左に楽曲・譜面情報と操作、右に判定数を表示する。コンボ表示はレーン中央付近に不透明度50%の文字で重ね、3コンボ以上で表示する（0～2は非表示）。判定結果は画面下から40%の位置に表示し、押した時刻のずれを `FAST 75.0 ms`／`LATE 125.0 ms` の形で示す。GREAT／GOODのずれはFASTが青、LATEが赤。保持中の定期判定やMISSには押下のずれを表示しない。
 
-前回のLONG/DOUBLE版を導入済みなら、更新するコードは `Assets/KeyboardRhythm/SilentPrototype/RhythmSession.cs`、`Assets/KeyboardRhythm/SilentPrototype/SilentChartView.cs`、`Assets/KeyboardRhythm/SilentPrototype/Editor/GameplayCoreChecks.cs` の3ファイル。README・関連docsも反映する。既存.meta・Sceneは保持し、譜面JSONは変更しない。詳しい確認例は [LONG_DOUBLE_CHECKS.md](docs/LONG_DOUBLE_CHECKS.md)。
+- マウスのプルダウン：譜面名で選択。選択時は音を停止しREADYへ戻る。F1／F2は使用しない。
+- Enter：開始、フォーカス喪失による停止からの再開。
+- F3：メトロノーム切替。音源なしでは初期ON、楽曲ありでは初期OFF。
+- F4または右側のチェックボックス：ノート取得音をON／OFF。初期ONで、取得成功時に小さな短い音が鳴る。
+- F5：現在の譜面を再読込。ノート・結果・コンボを初期化。
+- F6／F7：ノート表示と判定を10ms早める／遅らせる。Shift併用で1ms。F8で0ms。範囲±500msはデモ用仮設定。
+- 右側のスライダー、F9／F10：落下速度を0.1倍ずつ減速／加速。0.5～3.0倍、初期1.0倍。F11で1.0倍へ戻す。プレイ中も変更可能。
 
-## VS Code / Codexで行うこと
+落下速度は表示だけを変え、音楽の速度や判定時刻は維持する。速度と取得音のON／OFFは端末に保存する。取得音はDOUBLEの成立時や長押しの始点でも鳴り、MISS・範囲外入力・長押し中の定期加算では鳴らない。同時取得は1音にまとめる。音量はPlay停止中に`SilentChartPlayer`のInspectorで`Hit Sound Volume`を調整できる（初期0.08）。
 
-1. ZIPを展開し、Assetsのファイルを既存の `C:\dev\KeyboardRhythm\Assets` へ構成を保って反映する。導入済みファイルは差分を確認して更新し、既存.meta・Scene・関係しないコードは保持する。
-2. docsのSPEC v0.6・STATUS・CHART_FORMAT・LONG_DOUBLE_CHECKS・Schemaを、リポジトリ最新版と整合させて反映する。
-3. 必要に応じて同梱verificationをプロジェクト直下へ追加し、.NET SDK 10で `dotnet run --project verification/CoreChecks.csproj` を実行する。既存のUnity自動生成csprojは編集しない。
+端末補正はPlayerPrefsに保存し、全譜面で共用する。READYでは即時適用。開始後の変更はF5または譜面選択後の次回プレイへ適用し、停止からの再開では現在値を維持する。楽曲の再生速度と譜面ごとの開始秒は変更しない。
 
-新規ファイルは `Assets/Resources/Charts/long_double_demo.json`、`Assets/KeyboardRhythm/SilentPrototype/Editor/GameplayCoreChecks.cs`、説明文書とverification。既存のChartData・RhythmSession・KeyboardLaneInput・SilentChartPlayer・SilentChartView・Editorメニュー2ファイルを更新した。NoteLayoutと基本silent_demo.jsonは前回版から変更していない。
+## 楽曲と譜面を追加する
 
-Codexへの依頼例：
+音源を `Assets/Resources/Music/曲名.wav` 等へ置き、譜面JSONを `Assets/Resources/Charts/任意の名前.json` へ保存する。譜面ファイルから音源への相対パスは `../Music/曲名.wav`。既存の `Musics` フォルダーを使う場合は `../Musics/ファイル名.mp3` と指定できる。UnityがAudioClipとしてインポートできる音源を使用する。
 
-```text
-展開したSilentChartPrototypeのLONG途中参加対応版を反映してください。
-AGENTS.md、docs/SPEC.md、docs/STATUS.mdを読んでから作業してください。
-LONG/DOUBLE版が導入済みならRhythmSession.cs・SilentChartView.cs・Editor/GameplayCoreChecks.cs、README・関連docsを既存変更と差分を確認して反映してください。保持済みキーだけで新しいLONGを開始せず、別物理キーの新しい押下は受け付けてください。始点MISS後も終端まで途中参加可能にし、過去のMISSを残して参加後の保持判定をPERFECTにしてください。
-既存の.metaとSceneを保持し、更新対象以外のコードは保持してください。
-.NET SDK 10が利用できる場合はverification/CoreChecks.csprojで実際の判定チェックを実行してください。
-Unity向けのコンパイル確認を行い、未実施の確認と結果をSTATUSへ区別して記録してください。
-Unityでの操作は Tools > KeyboardRhythm > Open LONG DOUBLE Test、Play、Gameビュー、Enterです。
-```
+譜面JSONの `title` は選択欄に表示する譜面名、`audio.songTitle` は楽曲名、`audio.songId` は共有する楽曲ID。同じ曲を参照する複数のJSONを作り、それぞれ別の `chartId` と `title` を設定できる。古い音楽情報のない譜面も読み込める。
 
-## Unityで行うこと
+`audio.chartZeroAtAudioSeconds` は楽曲に対する譜面0拍の秒数。2なら曲の2秒で0拍、-1なら0拍の1秒後に曲が始まる。端末補正とは独立する。式は `ノート時刻 = 音楽秒 - 譜面開始秒 - 端末補正ms / 1000`。
 
-1. インポート・コンパイル後、`Tools > KeyboardRhythm > Open LONG DOUBLE Test` を選ぶ。
-2. Consoleに `Silent Chart checks passed` が表示されたら、Playを押す。専用の `Assets/Scenes/LongDoubleTest.unity` を自動作成／開く。現在のシーンに未保存変更がある場合はUnityの保存確認に対応する。
-3. GameビューをクリックしてEnterを押す。3秒後に先頭ノートへ到達する。今回の譜面は約41秒で終了する。
+JSONの追加・移動・削除時にはEditorで選択一覧を自動生成する。反映されない場合は `Tools > KeyboardRhythm > Refresh Chart Library` を実行し、Playを再開始する。音源が見つからない場合は画面とConsoleへエラーを出す。通常の保存はPlay停止中に行い、既存.metaは維持する。
 
-Hierarchyへの手動追加、Inspectorの参照設定、ノート配置は不要。Sceneはプレイヤー1つと背景Cameraを持ち、Canvas・レーン・長押しの帯・ノートラベルをコードで生成する。初回に生成された新規.metaとSceneをGitへ含める。Sceneのビルド登録は自動では行わない。
+外部エディターは `C:/dev/KeyboardRhythmChartEditor/chart-editor.html`。音源の試聴、現在位置を譜面0拍に設定、数値による正負の開始秒の入力に対応。ブラウザーで選んだ音源はJSONへ埋め込まれないため、Unityへ別途コピーする。詳細は [CHART_FORMAT.md](docs/CHART_FORMAT.md)。
 
-## 操作と確認順
+同梱のClockwork Neonは、このデモ用に合成した音源。`python tools/generate_demo_music.py` で再生成できる。
 
-- Enter：開始／フォーカス外れによる停止からの再開。
-- F1：前回のTOUCH/FLOOR基本譜面へ切替。F2：LONG/DOUBLE譜面へ切替。どちらもREADYへ戻るのでEnterで開始。
-- F5：現在の譜面を再読込し、全ノート状態・キー候補・結果・コンボを初期化。
-- 水色：TOUCH。黄色の二重線：DOUBLE。緑の帯：LONG。紫：Space単発／SPACE HOLD。
+## 検証と制限
 
-まずDOUBLEの異なる2キー（同じレーンのQ+Aも可）を確認する。続いてLONGの開始・持ち替え・短い空白・長い空白・復帰、LONGと単発ノートの共有、2本のLONG、Space長押しを確認する。譜面内の時刻と操作例は [LONG_DOUBLE_CHECKS.md](docs/LONG_DOUBLE_CHECKS.md) を参照する。
+.NETで既存判定164件・端末補正167件・楽曲同期／表示68件・メトロノーム15件・落下速度／取得音87件、計501件成功。Unityの実DLLでRuntimeとEditorを分けて外部コンパイルし警告0・エラー0。エディターのデータ処理17件、Edgeの操作48項目は過去の確認結果。
 
-## 仮設定と未実装
+**Unityでの実行未実施。** Playの実際の音出し・取得音の音量・スライダー／切替操作・選択・表示・フォーカス停止／再開、実キーボード入力、配布ビルドは未確認。実行手順と記録は [STATUS.md](docs/STATUS.md)。
 
-DOUBLEの相互差50ms、悪い方の判定採用、LONGの空白100msでMISS、開始成功+1・途中参加の追加開始加算なし・終端加算なし、BPM<120の16分間隔、共有LONGの各ノート加算は全て試作用の仮方式。確定済みの開始・途中参加・復帰・保持PERFECTを除き、残る最終仕様はU03～U10として保持する。値はPrototypeSettings、方式はRhythmSessionにまとまっている。従来の±50/100/150msの時間窓も仮値。
+`dotnet run --project verification/CoreChecks.csproj` で判定と時計の計算を検査できる。Unityメニュー `Tools > KeyboardRhythm > Run Silent Chart Checks` ではさらに登録譜面と音源の読込を検査する。
 
-音楽再生、精密な入力イベント時刻、音声・入力・表示の遅延補正、イベント実行、GUI譜面エディター、スコア・クリア条件・設定保存は未実装。イベントタグは読み込んで保持するだけで、時計や判定へ作用しない。譜面のschemaVersionは1を維持する。詳細は [CHART_FORMAT.md](docs/CHART_FORMAT.md)。
+判定窓±50／100／150ms、DOUBLEの相互差50ms、LONGの空白100ms等は従来の仮設定を維持する。詳しいルールは [SPEC.md](docs/SPEC.md)、長押し・DOUBLEの確認例は [LONG_DOUBLE_CHECKS.md](docs/LONG_DOUBLE_CHECKS.md)。イベント実行、BPM変更／停止、精密な入力イベント時刻、個別遅延の自動校正は未実装。Sceneのビルド登録は今回変更していない。
 
-## 自動チェック
-
-`Tools > KeyboardRhythm > Run Silent Chart Checks` は実コードに対して、時間窓、物理2キー、キー保持と再押下、LONG/FLOOR_LONGの早い・遅いGREAT/GOOD始点とPERFECT定期判定、F保持中のRによる同レーン開始、始点MISS後の途中参加・終端・加算境界、LONGの持ち替え、空白境界、MISS連打防止、復帰、開始・終端・低BPMの加算、入力共有、複数ノートの時間順、初期化、不正譜面、FLOOR表示範囲を検査する。Unityでは追加でJSONの読込・イベント保持も確認する。Scene作成メニューも同じチェックを実行し、失敗時は先へ進まない。
-
-.NET単体チェックはUnityの描画と入力を検査しない。UnityでのコンパイルとPlayを別に確認する。確認後は [LONG_DOUBLE_CHECKS.md](docs/LONG_DOUBLE_CHECKS.md) の報告例に沿ってSTATUSへ反映する。
+楽曲が譜面より長い場合も、最終ノートの判定猶予と結果余韻の後に音楽を停止する。今回のBASICは譜面開始から約60.14秒、ADVANCEDは約60.31秒（端末補正0ms）。Enter後のカウントインは別。
